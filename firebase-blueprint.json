@@ -1,0 +1,227 @@
+{
+  "entities": {
+    "SEOSettings": {
+      "title": "SEOSettings",
+      "description": "Bilingual SEO settings for the website",
+      "type": "object",
+      "properties": {
+        "zh": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "og_image": { "type": "string" }
+          },
+          "required": ["title", "description", "og_image"]
+        },
+        "ja": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "og_image": { "type": "string" }
+          },
+          "required": ["title", "description", "og_image"]
+        },
+        "google_analytics_id": { "type": "string" },
+        "search_console_id": { "type": "string" },
+        "index_enabled": { "type": "boolean" }
+      },
+      "required": ["zh", "ja", "index_enabled"]
+    },
+    "FontSettings": {
+      "title": "FontSettings",
+      "description": "Bilingual font settings for the website",
+      "type": "object",
+      "properties": {
+        "zh": {
+          "type": "object",
+          "properties": {
+            "display": {
+              "type": "object",
+              "properties": {
+                "url": { "type": "string" },
+                "family": { "type": "string" }
+              }
+            },
+            "body": {
+              "type": "object",
+              "properties": {
+                "url": { "type": "string" },
+                "family": { "type": "string" }
+              }
+            }
+          }
+        },
+        "ja": {
+          "type": "object",
+          "properties": {
+            "display": {
+              "type": "object",
+              "properties": {
+                "url": { "type": "string" },
+                "family": { "type": "string" }
+              }
+            },
+            "body": {
+              "type": "object",
+              "properties": {
+                "url": { "type": "string" },
+                "family": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and subscription data",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "premium_member", "admin"] },
+        "subscription_status": { "type": "string", "enum": ["none", "active", "trialing", "expired"] },
+        "subscription_tier": { "type": "string", "enum": ["free", "premium"] },
+        "subscription_expiry": { "type": "string", "format": "date-time" },
+        "trial_start_date": { "type": "string", "format": "date-time" },
+        "subscription_type": { "type": "string", "enum": ["none", "monthly", "yearly"] },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "daily_reminder": { "type": "boolean" },
+            "dark_mode": { "type": "boolean" },
+            "newsletter": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["uid", "role", "subscription_status"]
+    },
+    "Bottle": {
+      "title": "Bottle",
+      "description": "Anonymous message in the ocean",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "content": { "type": "string" },
+        "tag_id": { "type": "string", "description": "ID of the selected blessing tag" },
+        "element": { "type": "string" },
+        "energy_color_tag": { "type": "string", "description": "Energy color associated with the bottle" },
+        "report_id": { "type": "integer", "description": "Unique report ID per bottle" },
+        "translated_content": { "type": "string", "description": "Cached translation" },
+        "hug_count": { "type": "integer", "description": "Number of energy hugs received" },
+        "lang": { "type": "string" },
+        "is_active": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "content", "created_at"]
+    },
+    "BottleTag": {
+      "title": "BottleTag",
+      "description": "Predefined blessing tags for bottles",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "zh": { "type": "string" },
+        "ja": { "type": "string" },
+        "order": { "type": "integer" },
+        "is_active": { "type": "boolean" }
+      },
+      "required": ["zh", "ja"]
+    },
+    "ReportSettings": {
+      "title": "ReportSettings",
+      "description": "Visual and content configuration for the analysis report page",
+      "type": "object",
+      "properties": {
+        "layout": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Ordered list of module IDs (e.g., 'hero', 'cards', 'trend', 'insight', 'guidance')"
+        },
+        "styles": {
+          "type": "object",
+          "properties": {
+            "glassmorphism": { "type": "number", "description": "Blur intensity (0-100)" },
+            "primaryColor": { "type": "string" },
+            "secondaryColor": { "type": "string" },
+            "textColor": { "type": "string" },
+            "fontFamily": { "type": "string" }
+          }
+        },
+        "atmosphere": { "type": "string", "enum": ["ocean", "nebula", "komorebi", "forest"] },
+        "prompts": {
+          "type": "object",
+          "properties": {
+            "zh": {
+              "type": "object",
+              "properties": {
+                "tone": { "type": "string" },
+                "style": { "type": "string" },
+                "systemInstruction": { "type": "string" }
+              }
+            },
+            "ja": {
+              "type": "object",
+              "properties": {
+                "tone": { "type": "string" },
+                "style": { "type": "string" },
+                "systemInstruction": { "type": "string" }
+              }
+            }
+          }
+        },
+        "charts": {
+          "type": "object",
+          "properties": {
+            "energyTrend": { "type": "string", "enum": ["radar", "line", "bar"] }
+          }
+        },
+        "isPublished": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "site_settings/seo": {
+      "schema": "SEOSettings",
+      "description": "Global SEO configuration"
+    },
+    "site_settings/fonts": {
+      "schema": "FontSettings",
+      "description": "Global font configuration"
+    },
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user profile data"
+    },
+    "bottles/{bottleId}": {
+      "schema": "Bottle",
+      "description": "Ocean bottles"
+    },
+    "bottle_tags/{tagId}": {
+      "schema": "BottleTag",
+      "description": "Predefined blessing tags"
+    },
+    "site_settings/report_daily": {
+      "schema": "ReportSettings",
+      "description": "Live daily energy detection report configuration"
+    },
+    "site_settings/report_daily_draft": {
+      "schema": "ReportSettings",
+      "description": "Draft daily energy detection report configuration"
+    },
+    "site_settings/report_wish": {
+      "schema": "ReportSettings",
+      "description": "Live wish/trouble solving report configuration"
+    },
+    "site_settings/report_wish_draft": {
+      "schema": "ReportSettings",
+      "description": "Draft wish/trouble solving report configuration"
+    }
+  }
+}
