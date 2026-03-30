@@ -28,8 +28,6 @@ import {
   AlertCircle,
   Loader2,
   Settings as SettingsIcon,
-  Globe,
-  Share2,
   BarChart3,
   Music,
   Waves
@@ -62,6 +60,7 @@ import {
   useDeleteSensitiveWordMutation
 } from '../hooks/useAdminData';
 import { PromptManager } from '../components/Admin/PromptManager';
+import { SettingsManager } from '../components/Admin/Settings/SettingsManager';
 import { useQueryClient } from '@tanstack/react-query';
 import { UserProfile, Session, ImageCard, WordCard, FiveElement, AIPrompt, SEOSettings } from '../core/types';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -100,8 +99,6 @@ const AdminDashboard: React.FC = () => {
   const { data: cards, isLoading: cardsLoading } = useAdminCards(cardLocale);
   const { data: subscriptions, isLoading: subscriptionsLoading } = useAdminSubscriptions();
   const { data: analytics, isLoading: analyticsLoading } = useAdminAnalytics();
-  const { data: seoSettings, isLoading: seoLoading, isError: seoError } = useAdminSettings('seo');
-  const { data: fontSettings, isLoading: fontsLoading, isError: fontsError } = useAdminSettings('fonts');
   const { data: music, isLoading: musicLoading } = useAdminMusic();
 
   // Reports Management State
@@ -122,7 +119,6 @@ const AdminDashboard: React.FC = () => {
   // Mutations
   const saveCardMutation = useSaveCardMutation();
   const deleteCardMutation = useDeleteCardMutation();
-  const saveSettingsMutation = useSaveSettingsMutation();
   const deleteSessionDraftsMutation = useDeleteSessionDraftsMutation();
   const saveMusicMutation = useSaveMusicMutation();
   const deleteMusicMutation = useDeleteMusicMutation();
@@ -162,8 +158,7 @@ const AdminDashboard: React.FC = () => {
     (activeModule === 'analytics' && analyticsLoading) ||
     (activeModule === 'music' && musicLoading) ||
     (activeModule === 'reports' && reportsLoading) ||
-    (activeModule === 'ocean' && (bottlesLoading || bottleTagsLoading || sensitiveWordsLoading)) ||
-    (activeModule === 'settings' && (seoLoading || fontsLoading));
+    (activeModule === 'ocean' && (bottlesLoading || bottleTagsLoading || sensitiveWordsLoading));
 
   const handleSaveCard = async () => {
     if (!editingCard) return;
@@ -172,16 +167,6 @@ const AdminDashboard: React.FC = () => {
       setEditingCard(null);
     } catch (error) {
       console.error("儲存卡片失敗:", error);
-    }
-  };
-
-  const handleSaveSettings = async (key: string, value: any) => {
-    try {
-      await saveSettingsMutation.mutateAsync({ key, value });
-      alert('設定已儲存');
-    } catch (error) {
-      console.error("儲存設定失敗:", error);
-      alert('儲存失敗');
     }
   };
 
@@ -1177,271 +1162,6 @@ const AdminDashboard: React.FC = () => {
     );
   };
 
-  const renderSettings = () => {
-    // Provide defaults if data is missing but loading is finished
-    const seo = seoSettings || {
-      title: "EUNIE 嶼妳 | 懂妳的能量，平衡妳的生活",
-      description: "透過五行能量卡片，探索內在自我，獲得每日心靈指引與能量平衡。",
-      keywords: "能量卡片, 五行, 心靈導引, 冥想, 自我探索",
-      og_image: "https://picsum.photos/seed/lumina-og/1200/630",
-      google_analytics_id: "",
-      search_console_id: "",
-      index_enabled: true
-    };
-
-    const fonts = fontSettings || {
-      zh: {
-        display: { url: "https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&display=swap", family: "\"Noto Serif TC\", serif" },
-        body: { url: "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&display=swap", family: "\"Noto Sans TC\", sans-serif" }
-      },
-      ja: {
-        display: { url: "https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap", family: "\"Shippori Mincho\", serif" },
-        body: { url: "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap", family: "\"Noto Sans JP\", sans-serif" }
-      }
-    };
-
-    return (
-      <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xs uppercase tracking-[0.3em] font-medium">系統全站設定</h3>
-          <div className="flex gap-4">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                handleSaveSettings('seo', seo);
-                handleSaveSettings('fonts', fonts);
-              }}
-              disabled={saveSettingsMutation.isPending}
-              className="gap-2 h-10 px-6"
-            >
-              {saveSettingsMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-              儲存所有設定
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Basic SEO */}
-          <GlassCard className="p-8 space-y-6">
-            <div className="flex items-center gap-3 text-wood">
-              <Globe size={18} />
-              <h3 className="text-xs uppercase tracking-widest">基礎 SEO 設定</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-ink-muted">網站標題 (Title)</label>
-                <input 
-                  type="text" 
-                  value={seo.title || ''}
-                  onChange={(e) => queryClient.setQueryData(['admin', 'settings', 'seo'], { ...seo, title: e.target.value })}
-                  className="w-full px-4 py-3 bg-ink/[0.02] border border-ink/5 rounded-xl text-sm focus:outline-none focus:border-wood/30"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-ink-muted">網站描述 (Description)</label>
-                <textarea 
-                  value={seo.description || ''}
-                  onChange={(e) => queryClient.setQueryData(['admin', 'settings', 'seo'], { ...seo, description: e.target.value })}
-                  className="w-full h-32 px-4 py-3 bg-ink/[0.02] border border-ink/5 rounded-xl text-sm focus:outline-none focus:border-wood/30 resize-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-ink-muted">關鍵字 (Keywords)</label>
-                <input 
-                  type="text" 
-                  value={seo.keywords || ''}
-                  onChange={(e) => queryClient.setQueryData(['admin', 'settings', 'seo'], { ...seo, keywords: e.target.value })}
-                  className="w-full px-4 py-3 bg-ink/[0.02] border border-ink/5 rounded-xl text-sm focus:outline-none focus:border-wood/30"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-ink/[0.02] rounded-xl border border-ink/5">
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-medium">搜尋引擎索引</p>
-                  <p className="text-[8px] text-ink-muted tracking-widest mt-1">開啟後 Google 才能搜尋到網站</p>
-                </div>
-                <button 
-                  onClick={() => queryClient.setQueryData(['admin', 'settings', 'seo'], { ...seo, index_enabled: !seo.index_enabled })}
-                  className={`w-10 h-5 rounded-full relative transition-colors ${seo.index_enabled ? 'bg-wood' : 'bg-ink/10'}`}
-                >
-                  <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${seo.index_enabled ? 'left-6' : 'left-1'}`} />
-                </button>
-              </div>
-            </div>
-          </GlassCard>
-
-          {/* Social Share & LINE Preview */}
-          <div className="space-y-8">
-            <GlassCard className="p-8 space-y-6">
-              <div className="flex items-center gap-3 text-fire">
-                <Share2 size={18} />
-                <h3 className="text-xs uppercase tracking-widest">社群分享設定 (OG)</h3>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-ink-muted">預設分享圖 URL</label>
-                  <input 
-                    type="text" 
-                    value={seo.og_image || ''}
-                    onChange={(e) => queryClient.setQueryData(['admin', 'settings', 'seo'], { ...seo, og_image: e.target.value })}
-                    className="w-full px-4 py-3 bg-ink/[0.02] border border-ink/5 rounded-xl text-sm focus:outline-none focus:border-wood/30"
-                  />
-                </div>
-                
-                <div className="aspect-[1.91/1] rounded-2xl overflow-hidden bg-ink/5 border border-ink/5">
-                  {seo.og_image ? (
-                    <img src={seo.og_image} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-ink/10">
-                      <ImageIcon size={48} />
-                    </div>
-                  )}
-                </div>
-                <p className="text-[8px] text-ink-muted text-center tracking-widest">建議尺寸: 1200 x 630 px</p>
-              </div>
-            </GlassCard>
-
-            {/* LINE Preview Simulation */}
-            <GlassCard className="p-8 space-y-6 bg-[#06C755]/5 border-[#06C755]/20">
-              <div className="flex items-center gap-3 text-[#06C755]">
-                <div className="w-5 h-5 bg-[#06C755] rounded-sm flex items-center justify-center text-white text-[10px] font-bold">L</div>
-                <h3 className="text-xs uppercase tracking-widest">LINE 分享預覽模擬</h3>
-              </div>
-              
-              <div className="bg-white rounded-xl shadow-sm border border-ink/5 overflow-hidden max-w-[300px] mx-auto">
-                <div className="aspect-[1.91/1] bg-ink/5 overflow-hidden">
-                  {seo.og_image && <img src={seo.og_image} className="w-full h-full object-cover" />}
-                </div>
-                <div className="p-3 space-y-1">
-                  <h4 className="text-[13px] font-bold text-ink line-clamp-1">{seo.title}</h4>
-                  <p className="text-[11px] text-ink-muted line-clamp-2 leading-tight">{seo.description}</p>
-                  <p className="text-[9px] text-ink-muted/60 pt-1">{new URL(window.location.href).hostname}</p>
-                </div>
-              </div>
-              <p className="text-[9px] text-ink-muted text-center leading-relaxed">
-                * 此為模擬預覽，實際效果可能因 LINE 版本而異。<br/>
-                更新後若無即時生效，請使用 LINE Page Picker Tool 清除快取。
-              </p>
-            </GlassCard>
-          </div>
-
-          {/* Font Settings */}
-          <GlassCard className="p-8 space-y-6">
-            <div className="flex items-center gap-3 text-indigo-500">
-              <TypeIcon size={18} />
-              <h3 className="text-xs uppercase tracking-widest">多語系字型管理</h3>
-            </div>
-            
-            <div className="space-y-8">
-              {['zh', 'ja'].map((lang) => (
-                <div key={lang} className="space-y-4 p-4 bg-ink/[0.02] rounded-2xl border border-ink/5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest bg-ink/5 px-2 py-1 rounded">
-                      {lang === 'zh' ? '繁體中文 (zh)' : '日本語 (ja)'}
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[9px] uppercase tracking-widest text-ink-muted">標題字型 (Display Font)</label>
-                      <div className="grid grid-cols-1 gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="字型網址 (Google Fonts URL)"
-                          value={fonts[lang].display.url || ''}
-                          onChange={(e) => {
-                            const newFonts = { ...fonts };
-                            newFonts[lang].display.url = e.target.value;
-                            queryClient.setQueryData(['admin', 'settings', 'fonts'], newFonts);
-                          }}
-                          className="w-full px-3 py-2 bg-white border border-ink/5 rounded-lg text-xs focus:outline-none focus:border-wood/30"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="CSS Family Name (e.g. 'Noto Serif TC', serif)"
-                          value={fonts[lang].display.family || ''}
-                          onChange={(e) => {
-                            const newFonts = { ...fonts };
-                            newFonts[lang].display.family = e.target.value;
-                            queryClient.setQueryData(['admin', 'settings', 'fonts'], newFonts);
-                          }}
-                          className="w-full px-3 py-2 bg-white border border-ink/5 rounded-lg text-xs focus:outline-none focus:border-wood/30"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[9px] uppercase tracking-widest text-ink-muted">內文字型 (Body Font)</label>
-                      <div className="grid grid-cols-1 gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="字型網址 (Google Fonts URL)"
-                          value={fonts[lang].body.url || ''}
-                          onChange={(e) => {
-                            const newFonts = { ...fonts };
-                            newFonts[lang].body.url = e.target.value;
-                            queryClient.setQueryData(['admin', 'settings', 'fonts'], newFonts);
-                          }}
-                          className="w-full px-3 py-2 bg-white border border-ink/5 rounded-lg text-xs focus:outline-none focus:border-wood/30"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="CSS Family Name (e.g. 'Noto Sans TC', sans-serif)"
-                          value={fonts[lang].body.family || ''}
-                          onChange={(e) => {
-                            const newFonts = { ...fonts };
-                            newFonts[lang].body.family = e.target.value;
-                            queryClient.setQueryData(['admin', 'settings', 'fonts'], newFonts);
-                          }}
-                          className="w-full px-3 py-2 bg-white border border-ink/5 rounded-lg text-xs focus:outline-none focus:border-wood/30"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
-
-          {/* Analytics & Verification */}
-          <GlassCard className="p-8 space-y-6 lg:col-span-2">
-            <div className="flex items-center gap-3 text-water">
-              <BarChart3 size={18} />
-              <h3 className="text-xs uppercase tracking-widest">追蹤與驗證</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-ink-muted">Google Analytics ID (GA4)</label>
-                <input 
-                  type="text" 
-                  placeholder="G-XXXXXXXXXX"
-                  value={seoSettings.google_analytics_id || ''}
-                  onChange={(e) => queryClient.setQueryData(['admin', 'settings', 'seo'], { ...seoSettings, google_analytics_id: e.target.value })}
-                  className="w-full px-4 py-3 bg-ink/[0.02] border border-ink/5 rounded-xl text-sm focus:outline-none focus:border-wood/30"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-ink-muted">Search Console 驗證碼</label>
-                <input 
-                  type="text" 
-                  placeholder="驗證碼內容"
-                  value={seoSettings.search_console_id || ''}
-                  onChange={(e) => queryClient.setQueryData(['admin', 'settings', 'seo'], { ...seoSettings, search_console_id: e.target.value })}
-                  className="w-full px-4 py-3 bg-ink/[0.02] border border-ink/5 rounded-xl text-sm focus:outline-none focus:border-wood/30"
-                />
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-      </div>
-    );
-  };
 
   const renderSessions = () => (
     <GlassCard className="overflow-hidden">
@@ -1739,7 +1459,7 @@ const AdminDashboard: React.FC = () => {
                   {activeModule === 'sessions' && renderSessions()}
                   {activeModule === 'subscriptions' && renderSubscriptions()}
                   {activeModule === 'analytics' && renderAnalytics()}
-                  {activeModule === 'settings' && renderSettings()}
+                  {activeModule === 'settings' && <SettingsManager />}
                 </>
               )}
             </motion.div>
