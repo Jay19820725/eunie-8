@@ -72,18 +72,35 @@ router.get("/:uid/points", async (req, res) => {
 router.patch("/:uid", async (req, res) => {
   const { uid } = req.params;
   const updates = req.body;
-  const fields = Object.keys(updates);
+
+  // Whitelist and map allowed fields to database columns to prevent SQL injection via keys
+  const allowedFieldMap: Record<string, string> = {
+    email: "email",
+    displayName: "display_name",
+    photoURL: "photo_url",
+    role: "role",
+    points: "points",
+    subscription_status: "subscription_status",
+    subscription_tier: "subscription_tier",
+    subscription_expiry: "subscription_expiry",
+    is_first_purchase: "is_first_purchase",
+    default_bottle_nickname: "default_bottle_nickname",
+    language: "language",
+    loop_stage: "loop_stage",
+  };
+
+  const fields = Object.keys(updates).filter(f => f in allowedFieldMap);
   
   console.log(`PATCH /api/users/${uid} - Updates:`, updates);
   
-  if (fields.length === 0) return res.status(400).json({ error: "No fields to update" });
+  if (fields.length === 0) return res.status(400).json({ error: "No valid fields to update" });
 
   const setClause = fields.map((f, i) => {
-    const colName = f === 'displayName' ? 'display_name' : f === 'photoURL' ? 'photo_url' : f;
+    const colName = allowedFieldMap[f];
     return `${colName} = $${i + 2}`;
   }).join(", ");
   
-  const values = [uid, ...Object.values(updates)];
+  const values = [uid, ...fields.map(f => updates[f])];
 
   try {
     const result = await pool.query(
