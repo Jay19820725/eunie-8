@@ -40,33 +40,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     // Fetch font settings
-    const fetchFonts = async (retries = 3) => {
-      try {
-        const res = await fetch(`${window.location.origin}/api/settings/fonts`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
+    fetch('/api/settings/fonts')
+      .then(res => res.json())
+      .then(data => {
         setFontSettings(data);
-      } catch (err: any) {
-        if (retries > 0) {
-          console.warn(`Retrying font fetch (${retries} retries left)...`, err.message);
-          setTimeout(() => fetchFonts(retries - 1), 1000);
-          return;
-        }
-        console.error('Failed to fetch font settings after retries:', err.name, err.message);
-        // Fallback to defaults if fetch fails
-        setFontSettings({
-          zh: {
-            display: { url: "https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&display=swap", family: "\"Noto Serif TC\", serif" },
-            body: { url: "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&display=swap", family: "\"Noto Sans TC\", sans-serif" }
-          },
-          ja: {
-            display: { url: "https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap", family: "\"Shippori Mincho\", serif" },
-            body: { url: "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap", family: "\"Noto Sans JP\", sans-serif" }
-          }
-        });
-      }
-    };
-    fetchFonts();
+      })
+      .catch(err => console.error('Failed to fetch font settings:', err));
   }, [profile?.language]);
 
   useEffect(() => {

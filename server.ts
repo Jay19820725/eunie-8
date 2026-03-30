@@ -4,7 +4,6 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
-import cors from "cors";
 import { initializeDatabase } from "./src/server/db.ts";
 import {
   requestLogger,
@@ -28,7 +27,6 @@ async function startServer() {
   });
 
   // Middleware
-  app.use(cors());
   app.use(express.json({ limit: '1mb' }));
   app.use(securityHeaders);
   app.use(requestLogger);

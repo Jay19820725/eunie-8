@@ -221,6 +221,35 @@ export interface EnergyJournalEntry {
 export type AIPromptCategory = 'analysis' | 'daily' | 'persona';
 export type AIPromptStyle = 'gentle' | 'ethereal' | 'poetic' | 'professional' | 'healing' | 'custom';
 
+export type AtmosphereType = 'ocean' | 'nebula' | 'komorebi' | 'forest';
+export type ChartType = 'radar' | 'bar' | 'pie' | 'energy_trend';
+
+export interface ReportSettings {
+  layout: { id: string; type: string; enabled: boolean; order: number }[];
+  styles: {
+    glassmorphism: number;
+    primaryColor: string;
+    secondaryColor: string;
+    fontFamily: string;
+  };
+  atmosphere: AtmosphereType;
+  prompts: {
+    zh: {
+      tone: string;
+      style: string;
+      systemInstruction: string;
+    };
+    ja: {
+      tone: string;
+      style: string;
+      systemInstruction: string;
+    };
+  };
+  charts: ChartType[];
+  isPublished: boolean;
+  updatedAt: string;
+}
+
 export interface AIPrompt {
   id: string;
   report_type: 'daily' | 'wish';

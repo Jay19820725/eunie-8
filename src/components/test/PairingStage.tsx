@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '../ui/Button';
-import { ArrowRight, Check, Maximize2 } from 'lucide-react';
+import { ArrowRight, Check, Maximize2, ChevronDown } from 'lucide-react';
 import { ImageCard, WordCard, CardPair } from '../../core/types';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -40,16 +40,34 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
   const [pairs, setPairs] = useState<{ imageId: string; wordId: string }[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
+  const imageSectionRef = useRef<HTMLDivElement>(null);
+  const wordSectionRef = useRef<HTMLDivElement>(null);
 
   const handleCardClick = (cardId: string, type: 'image' | 'word') => {
     if (type === 'image') {
       if (pairs.some(p => p.imageId === cardId)) return;
+      if (!selectedWordId) return; // Enforce Step 1: Select word first
       setSelectedImageId(prev => prev === cardId ? null : cardId);
     } else {
       if (pairs.some(p => p.wordId === cardId)) return;
       setSelectedWordId(prev => prev === cardId ? null : cardId);
     }
   };
+
+  useEffect(() => {
+    if (selectedWordId && !selectedImageId && imageSectionRef.current && window.innerWidth < 1024) {
+      imageSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [selectedWordId]);
+
+  useEffect(() => {
+    if (pairs.length > 0 && pairs.length < 3 && wordSectionRef.current && window.innerWidth < 1024) {
+      const timer = setTimeout(() => {
+        wordSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [pairs.length]);
 
   useEffect(() => {
     if (selectedImageId && selectedWordId) {
@@ -82,61 +100,91 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
       className="w-full max-w-7xl flex flex-col items-center gap-10 md:gap-16 px-4"
     >
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-32 items-start">
-        {/* Images Section */}
-        <motion.div variants={itemVariants} className="space-y-4 md:space-y-6">
-          <div className="flex items-center gap-6">
-            <span className="text-[10px] uppercase tracking-[0.8em] text-ink-muted whitespace-nowrap">{t('test_pairing_images')}</span>
-            <div className="h-px flex-1 bg-ink/5" />
+        {/* Images Section - Now order-3 on mobile, lg:order-1 on desktop */}
+        <motion.div 
+          ref={imageSectionRef} 
+          variants={itemVariants} 
+          className="space-y-4 md:space-y-6 order-3 lg:order-1"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-6 w-full">
+              <span className="text-[10px] uppercase tracking-[0.8em] text-ink-muted whitespace-nowrap">{t('test_pairing_images')}</span>
+              <div className="h-px flex-1 bg-ink/5" />
+            </div>
+            
+            {/* Step 2 Guide */}
+            {selectedWordId && !selectedImageId && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-2"
+              >
+                <span className="text-slate-500 text-sm tracking-widest font-medium">
+                  Step 2：點選一張圖像完成配對
+                </span>
+              </motion.div>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-4 md:gap-6">
             {images.map((card) => {
               const isPaired = pairs.some(p => p.imageId === card.id);
               const isSelected = selectedImageId === card.id;
               return (
-                <motion.div
-                  key={card.id}
-                  onClick={() => handleCardClick(card.id, 'image')}
-                  className={`relative aspect-[384/688] cursor-pointer transition-all duration-700 group ${
-                    isPaired ? 'opacity-20 scale-90 pointer-events-none' : ''
-                  }`}
-                  animate={{
-                    scale: isSelected ? 1.08 : 1,
-                    y: isSelected ? -12 : 0,
-                  }}
-                  whileHover={{ scale: isPaired ? 0.9 : 1.05 }}
-                >
-                  <div className={`w-full h-full rounded-3xl overflow-hidden bg-white shadow-2xl border-2 transition-all duration-500 ${
-                    isSelected ? 'border-emerald-400/50 shadow-emerald-900/10' : 'border-white/20'
-                  }`}>
-                    <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
-                    {!isPaired && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onZoom(card);
-                        }}
-                        className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-ink/40 hover:text-ink hover:bg-white/60 transition-all opacity-0 group-hover:opacity-100 z-10"
-                      >
-                        <Maximize2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                  {isSelected && (
+                <div key={card.id} className="relative">
+                  {/* Bouncing Arrow */}
+                  {selectedWordId && !isPaired && !selectedImageId && (
                     <motion.div 
-                      layoutId="glow-img"
-                      className="absolute inset-0 bg-emerald-400/10 blur-2xl -z-10"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    />
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 z-20 text-slate-400"
+                    >
+                      <ChevronDown className="animate-bounce" size={24} />
+                    </motion.div>
                   )}
-                </motion.div>
+                  <motion.div
+                    onClick={() => handleCardClick(card.id, 'image')}
+                    className={`relative aspect-[384/688] cursor-pointer transition-all duration-700 group ${
+                      isPaired ? 'opacity-20 scale-90 pointer-events-none' : ''
+                    }`}
+                    animate={{
+                      scale: isSelected ? 1.08 : 1,
+                      y: isSelected ? -12 : 0,
+                    }}
+                    whileHover={{ scale: isPaired ? 0.9 : 1.05 }}
+                  >
+                    <div className={`w-full h-full rounded-3xl overflow-hidden bg-white shadow-2xl border-2 transition-all duration-500 ${
+                      isSelected ? 'border-emerald-400/50 shadow-emerald-900/10' : 'border-white/20'
+                    }`}>
+                      <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                      {!isPaired && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onZoom(card);
+                          }}
+                          className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-ink/40 hover:text-ink hover:bg-white/60 transition-all opacity-0 group-hover:opacity-100 z-10"
+                        >
+                          <Maximize2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    {isSelected && (
+                      <motion.div 
+                        layoutId="glow-img"
+                        className="absolute inset-0 bg-emerald-400/10 blur-2xl -z-10"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      />
+                    )}
+                  </motion.div>
+                </div>
               );
             })}
           </div>
         </motion.div>
 
-        {/* Energy Bridge Hint - Mobile: Vertical spacer */}
-        <div className="lg:hidden flex items-center gap-4 w-full py-4">
+        {/* Energy Bridge Hint - Mobile: Vertical spacer, order-2 */}
+        <div className="lg:hidden flex items-center gap-4 w-full py-4 order-2">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-ink/10 to-ink/20" />
           <motion.div 
             key={selectedImageId || selectedWordId || 'idle-mobile'}
@@ -151,11 +199,30 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-ink/10 to-ink/20" />
         </div>
 
-        {/* Words Section */}
-        <motion.div variants={itemVariants} className="space-y-4 md:space-y-6">
-          <div className="flex items-center gap-6">
-            <span className="text-[10px] uppercase tracking-[0.8em] text-ink-muted whitespace-nowrap">{t('test_pairing_words')}</span>
-            <div className="h-px flex-1 bg-ink/5" />
+        {/* Words Section - Now order-1 on mobile, lg:order-2 on desktop */}
+        <motion.div 
+          ref={wordSectionRef}
+          variants={itemVariants} 
+          className="space-y-4 md:space-y-6 order-1 lg:order-2"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-6 w-full">
+              <span className="text-[10px] uppercase tracking-[0.8em] text-ink-muted whitespace-nowrap">{t('test_pairing_words')}</span>
+              <div className="h-px flex-1 bg-ink/5" />
+            </div>
+
+            {/* Step 1 Guide */}
+            {!selectedWordId && pairs.length < 3 && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-2"
+              >
+                <span className="text-slate-500 text-sm tracking-widest animate-pulse font-medium">
+                  Step 1：點選一張文字卡
+                </span>
+              </motion.div>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-4 md:gap-6">
             {words.map((card) => {
@@ -175,7 +242,7 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
                   whileHover={{ scale: isPaired ? 0.9 : 1.05 }}
                 >
                   <div className={`w-full h-full rounded-3xl overflow-hidden bg-white shadow-2xl border-2 transition-all duration-500 ${
-                    isSelected ? 'border-emerald-400/50 shadow-emerald-900/10' : 'border-white/20'
+                    isSelected ? 'border-blue-400 shadow-blue-900/10' : 'border-white/20'
                   }`}>
                     <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
                     {!isPaired && (
@@ -193,7 +260,7 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
                   {isSelected && (
                     <motion.div 
                       layoutId="glow-word"
-                      className="absolute inset-0 bg-emerald-400/10 blur-2xl -z-10"
+                      className="absolute inset-0 bg-blue-400/10 blur-2xl -z-10"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                     />
