@@ -12,6 +12,8 @@ import { CardCollage } from '../components/report/CardCollage';
 import { PoeticLoading } from '../components/report/PoeticLoading';
 import { CastBottleModal } from '../components/ocean/CastBottleModal';
 
+import { auth } from '../lib/firebase';
+
 const WeavingLoader: React.FC<{ label?: string }> = ({ label }) => {
   const { t } = useLanguage();
   const displayLabel = label || t('report_weaving');
@@ -48,6 +50,7 @@ export const EnergyReport: React.FC<{
     selectedShareThumbnail,
     handleSelectThumbnail,
     isAiLoading,
+    reAnalyze
   } = useEnergyReport(onReset);
 
   const [showCastModal, setShowCastModal] = React.useState(false);
@@ -313,6 +316,16 @@ export const EnergyReport: React.FC<{
             >
               <Sparkles size={16} /> {t('ocean_cast_btn')}
             </Button>
+            {auth.currentUser?.email === 'jsweb.jay@gmail.com' && (
+              <Button
+                onClick={reAnalyze}
+                disabled={isAiLoading}
+                variant="outline"
+                className="h-16 w-full gap-4 text-[10px] uppercase tracking-[0.4em] font-light border-accent/20 text-accent hover:bg-accent/5 mt-4"
+              >
+                <RefreshCw size={14} className={isAiLoading ? "animate-spin" : ""} /> 再次織就靈魂報告
+              </Button>
+            )}
           </div>
 
           {isGuest && (
