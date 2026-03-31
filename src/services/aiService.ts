@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-export const aiService = {
+export const createAiService = (GenAIClass: typeof GoogleGenAI = GoogleGenAI) => ({
   async translateBottle(content: string, targetLang: 'zh' | 'ja'): Promise<string> {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -8,7 +8,7 @@ export const aiService = {
       return content;
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GenAIClass({ apiKey });
     const model = "gemini-3-flash-preview";
     
     const targetLangName = targetLang === 'zh' ? 'Traditional Chinese (zh-TW)' : 'Japanese (ja-JP)';
@@ -30,4 +30,6 @@ export const aiService = {
       return content;
     }
   }
-};
+});
+
+export const aiService = createAiService();
