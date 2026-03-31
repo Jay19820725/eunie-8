@@ -19,7 +19,6 @@ interface TestContextType {
   setPairs: (pairs: CardPair[]) => void;
   setAssociations: (associations: { pair_id: string; text: string }[]) => void;
   generateReport: () => Promise<AnalysisReport | null>;
-  reGenerateAIAnalysis: () => Promise<void>;
   setReport: (report: AnalysisReport | null) => void;
   reportType: 'daily' | 'wish';
   setReportType: (type: 'daily' | 'wish') => void;
@@ -415,94 +414,6 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [selectedCards, language, userPoints, fetchUserPoints]);
 
-  const reGenerateAIAnalysis = useCallback(async () => {
-    if (!report || !selectedCards.images.length) return;
-    
-    setReport(prev => prev ? { ...prev, isAiComplete: false } : null);
-    
-    try {
-      const aiAnalysis = await generateAIAnalysis(
-        selectedCards, 
-        report.totalScores, 
-        language,
-        reportType,
-        wishContext || undefined,
-        historicalScores || undefined
-      );
-      
-      const finalReport: AnalysisReport = {
-        ...report,
-        ...aiAnalysis,
-        isAiComplete: true,
-        multilingualContent: {
-          ...report.multilingualContent,
-          [language === 'zh' ? 'zh-TW' : 'ja-JP']: {
-            todayTheme: aiAnalysis.todayTheme || "",
-            cardInterpretation: aiAnalysis.cardInterpretation || "",
-            psychologicalInsight: aiAnalysis.psychologicalInsight || "",
-            fiveElementAnalysis: aiAnalysis.fiveElementAnalysis || "",
-            reflection: aiAnalysis.reflection || "",
-            actionSuggestion: aiAnalysis.actionSuggestion || "",
-            pairInterpretations: aiAnalysis.pairInterpretations || [],
-            soulMirror: aiAnalysis.soulMirror,
-            destinyWhisper: aiAnalysis.destinyWhisper,
-            transformationPath: aiAnalysis.transformationPath,
-            healingRitual: aiAnalysis.healingRitual,
-            plainSummary: aiAnalysis.plainSummary,
-          }
-        } as any
-      };
-
-      setReport(finalReport);
-      
-      // Update local storage
-      const history = JSON.parse(localStorage.getItem('eunie_report_history') || '[]');
-      const filtered = history.filter((r: any) => r.id !== finalReport.id);
-      localStorage.setItem('eunie_report_history', JSON.stringify([finalReport, ...filtered].slice(0, 50)));
-      
-      // Sync to cloud
-      const userId = auth.currentUser?.uid;
-      await fetch('/api/reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: finalReport.id,
-          userId: userId,
-          lang: language,
-          reportType: finalReport.reportType,
-          wishContext: finalReport.wishContext,
-          dominantElement: finalReport.dominantElement,
-          weakElement: finalReport.weakElement,
-          balanceScore: finalReport.balanceScore,
-          todayTheme: finalReport.todayTheme,
-          isAiComplete: finalReport.isAiComplete,
-          interpretation: finalReport.interpretation,
-          pairInterpretations: finalReport.pairInterpretations,
-          cardInterpretation: finalReport.cardInterpretation,
-          psychologicalInsight: finalReport.psychologicalInsight,
-          fiveElementAnalysis: finalReport.fiveElementAnalysis,
-          reflection: finalReport.reflection,
-          actionSuggestion: finalReport.actionSuggestion,
-          soulMirror: finalReport.soulMirror,
-          destinyWhisper: finalReport.destinyWhisper,
-          transformationPath: finalReport.transformationPath,
-          healingRitual: finalReport.healingRitual,
-          plainSummary: finalReport.plainSummary,
-          manifestationGuidance: finalReport.manifestationGuidance,
-          energyObstacles: finalReport.energyObstacles,
-          multilingualContent: finalReport.multilingualContent,
-          selectedImageIds: finalReport.selectedImageIds,
-          selectedWordIds: finalReport.selectedWordIds,
-          totalScores: finalReport.totalScores,
-          pairs: finalReport.pairs
-        })
-      });
-    } catch (err) {
-      console.error("Re-analysis failed:", err);
-      setReport(prev => prev ? { ...prev, isAiComplete: true } : null);
-    }
-  }, [report, selectedCards, language, reportType, wishContext, historicalScores]);
-
   useEffect(() => {
     // Initial sync on mount
     syncPendingReports();
@@ -522,7 +433,6 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPairs,
       setAssociations,
       generateReport,
-      reGenerateAIAnalysis,
       setReport,
       reportType,
       setReportType,
