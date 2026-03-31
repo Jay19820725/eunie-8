@@ -276,7 +276,7 @@ export interface ChatMessage {
   energyUpdate?: FiveElementValues;
 }
 
-export type DrawStage = 'idle' | 'wish_input' | 'shuffling' | 'drawing_images' | 'drawing_words' | 'pairing' | 'associating' | 'revealed';
+export type DrawStage = 'idle' | 'wish_input' | 'shuffling' | 'drawing_images' | 'drawing_words' | 'pairing' | 'pairing_review' | 'associating' | 'revealed';
 
 export type LoopStage = 'calibration' | 'resonance' | 'reflection' | 'completed';
 

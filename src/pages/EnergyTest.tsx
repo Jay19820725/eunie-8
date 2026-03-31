@@ -58,6 +58,7 @@ export const EnergyTest: React.FC<{ onComplete: () => void }> = ({ onComplete })
     handleFlipWord,
     handleContinueToWords,
     handleContinueToPairing,
+    handlePairingReview,
     handlePairingComplete,
     handleAssociationComplete,
     handleComplete,
@@ -405,7 +406,7 @@ export const EnergyTest: React.FC<{ onComplete: () => void }> = ({ onComplete })
                 </motion.div>
               )}
             </motion.div>
-          ) : drawStage === 'pairing' ? (
+          ) : (drawStage === 'pairing' || drawStage === 'pairing_review') ? (
             <motion.div
               key="pairing"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -417,7 +418,10 @@ export const EnergyTest: React.FC<{ onComplete: () => void }> = ({ onComplete })
                 images={selectedCards.images} 
                 words={selectedCards.words} 
                 onComplete={handlePairingComplete}
+                onReview={handlePairingReview}
+                onCancelReview={() => setDrawStage('pairing')}
                 onZoom={setZoomedCard}
+                isReviewing={drawStage === 'pairing_review'}
               />
             </motion.div>
           ) : drawStage === 'associating' ? (

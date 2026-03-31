@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { pool } from "../db.ts";
-import { GoogleGenAI } from "@google/genai";
 
 const router = Router();
 
@@ -63,34 +62,6 @@ router.post("/", async (req, res) => {
           error: "Content contains sensitive words.", 
           code: "SENSITIVE_CONTENT" 
         });
-      }
-    }
-
-    // 4.1 AI Content Moderation (Gemini)
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const model = "gemini-3-flash-preview";
-        const moderationPrompt = `You are a content moderator for a meditation and emotional resonance app. 
-        Analyze the following message for hate speech, extreme negativity, harassment, or inappropriate content.
-        Respond ONLY with "PASS" if the content is safe and warm, or "FAIL" if it is inappropriate.
-        Message: ${content}`;
-        
-        const moderationResponse = await ai.models.generateContent({
-          model,
-          contents: [{ parts: [{ text: moderationPrompt }] }]
-        });
-        
-        const moderationResult = moderationResponse.text?.trim().toUpperCase();
-        if (moderationResult === "FAIL") {
-          return res.status(400).json({ 
-            error: "The ocean currents are too turbulent for this message right now. Please try to calm your heart and try again.", 
-            code: "AI_MODERATION_FAILED" 
-          });
-        }
-      } catch (aiErr) {
-        console.error("AI Moderation error:", aiErr);
-        // If AI fails, we fall back to the manual sensitive word filter (already passed)
       }
     }
 

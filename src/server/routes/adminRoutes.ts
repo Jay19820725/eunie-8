@@ -308,31 +308,9 @@ router.post("/prompts/sync-defaults", async (req, res) => {
 });
 
 router.post("/prompts/test", async (req, res) => {
-  const { prompt, userData, energyData, lang } = req.body;
-  try {
-    const { GoogleGenAI, Type } = await import("@google/genai");
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-    const model = "gemini-3.1-pro-preview";
-
-    const langInstruction = lang === 'ja' 
-      ? "【重要】必ず日本語 (ja-JP) で回答してください。" 
-      : "【重要】請務必使用繁體中文 (zh-TW) 回答。";
-
-    const finalPrompt = `${langInstruction}\n\n${prompt}\n\n【測試數據】\n用戶資料: ${JSON.stringify(userData)}\n能量資料: ${JSON.stringify(energyData)}`;
-
-    const response = await ai.models.generateContent({
-      model,
-      contents: finalPrompt,
-      config: {
-        responseMimeType: "application/json"
-      }
-    });
-
-    res.json({ result: response.text });
-  } catch (err) {
-    console.error("Error testing prompt:", err);
-    res.status(500).json({ error: String(err) });
-  }
+  res.status(400).json({ 
+    error: "AI prompt testing must be performed from the frontend client to ensure correct API key usage." 
+  });
 });
 
 router.delete("/prompts/:id", async (req, res) => {

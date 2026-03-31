@@ -102,6 +102,10 @@ export const useEnergyTestState = (onComplete: () => void) => {
     setDrawStage('pairing');
   };
 
+  const handlePairingReview = () => {
+    setDrawStage('pairing_review');
+  };
+
   const handlePairingComplete = (pairs: CardPair[]) => {
     setPairs(pairs);
     setDrawStage('associating');
@@ -138,6 +142,7 @@ export const useEnergyTestState = (onComplete: () => void) => {
     handleFlipWord,
     handleContinueToWords,
     handleContinueToPairing,
+    handlePairingReview,
     handlePairingComplete,
     handleAssociationComplete,
     handleComplete,

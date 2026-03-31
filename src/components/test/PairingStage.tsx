@@ -32,16 +32,21 @@ interface PairingStageProps {
   images: ImageCard[];
   words: WordCard[];
   onComplete: (pairs: CardPair[]) => void;
+  onReview?: () => void;
+  onCancelReview?: () => void;
   onZoom: (card: ImageCard | WordCard) => void;
+  isReviewing?: boolean;
 }
 
-export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onComplete, onZoom }) => {
+export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onComplete, onReview, onCancelReview, onZoom, isReviewing = false }) => {
   const { t } = useLanguage();
   const [pairs, setPairs] = useState<{ imageId: string; wordId: string }[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
+  const [isFlashing, setIsFlashing] = useState(false);
   const imageSectionRef = useRef<HTMLDivElement>(null);
   const wordSectionRef = useRef<HTMLDivElement>(null);
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   const handleCardClick = (cardId: string, type: 'image' | 'word') => {
     if (type === 'image') {
@@ -61,13 +66,20 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
   }, [selectedWordId]);
 
   useEffect(() => {
-    if (pairs.length > 0 && pairs.length < 3 && wordSectionRef.current && window.innerWidth < 1024) {
+    if (pairs.length === 3 && onReview && !isReviewing) {
+      onReview();
+      setTimeout(() => {
+        reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 500);
+    } else if (pairs.length < 3 && isReviewing && onCancelReview) {
+      onCancelReview();
+    } else if (pairs.length > 0 && pairs.length < 3 && wordSectionRef.current && window.innerWidth < 1024) {
       const timer = setTimeout(() => {
         wordSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, [pairs.length]);
+  }, [pairs.length, onReview, isReviewing]);
 
   useEffect(() => {
     if (selectedImageId && selectedWordId) {
@@ -80,6 +92,13 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
 
   const handleUnpair = (imageId: string) => {
     setPairs(prev => prev.filter(p => p.imageId !== imageId));
+  };
+
+  const handleAdjust = () => {
+    setIsFlashing(true);
+    setTimeout(() => setIsFlashing(false), 2000);
+    // Scroll back to pairs to make sure they see the flashing buttons
+    reviewSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const isAllPaired = pairs.length === images.length && images.length > 0;
@@ -289,7 +308,7 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
       </div>
 
       {/* Connected Pairs Section */}
-      <motion.div variants={itemVariants} className="w-full space-y-12">
+      <motion.div ref={reviewSectionRef} variants={itemVariants} className="w-full space-y-12">
         <div className="flex items-center justify-center gap-6">
           <div className="h-px flex-1 bg-ink/5" />
           <span className="text-[10px] uppercase tracking-[0.8em] text-ink-muted whitespace-nowrap">{t('test_pairing_connected')}</span>
@@ -315,13 +334,18 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
                     <img src={words.find(w => w.id === pair.wordId)?.imageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
                 </div>
-                <button 
+                <motion.button 
                   onClick={() => handleUnpair(pair.imageId)}
-                  className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-rose-50 text-rose-400"
+                  animate={isFlashing ? {
+                    scale: [1, 1.2, 1, 1.2, 1],
+                    backgroundColor: ["#ffffff", "#fff1f2", "#ffffff", "#fff1f2", "#ffffff"],
+                    color: ["#fb7185", "#e11d48", "#fb7185", "#e11d48", "#fb7185"]
+                  } : {}}
+                  transition={{ duration: 2 }}
+                  className={`absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center transition-opacity duration-300 hover:bg-rose-50 text-rose-400 ${isReviewing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                 >
-                  <Check size={14} className="hidden group-hover:block" />
-                  <span className="group-hover:hidden">×</span>
-                </button>
+                  <span className="text-lg leading-none">×</span>
+                </motion.button>
               </motion.div>
             ))}
             {pairs.length === 0 && (
@@ -336,16 +360,39 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
       </motion.div>
 
       <AnimatePresence>
-        {isAllPaired && (
+        {isReviewing && isAllPaired && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="mt-8 md:mt-10 mb-8"
+            className="w-full flex flex-col items-center gap-6 mt-8 md:mt-10 mb-8"
           >
-            <Button onClick={handleFinish} className="h-20 px-16 gap-4 text-lg shadow-2xl shadow-emerald-900/20 bg-emerald-500 hover:bg-emerald-600">
-              {t('test_pairing_confirm')} <ArrowRight size={20} />
-            </Button>
+            <div className="flex flex-col gap-4 w-full max-w-xs">
+              <Button 
+                onClick={handleFinish} 
+                className="h-16 md:h-20 px-8 md:px-16 gap-4 text-lg shadow-2xl shadow-emerald-900/20 bg-emerald-500 hover:bg-emerald-600 w-full"
+              >
+                {t('test_pairing_confirm_next')} <ArrowRight size={20} />
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={handleAdjust} 
+                className="h-12 md:h-14 px-8 border-ink/10 text-ink/60 hover:text-ink hover:border-ink/30 w-full"
+              >
+                {t('test_pairing_adjust')}
+              </Button>
+            </div>
+
+            {isFlashing && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xs tracking-widest text-rose-400 font-light"
+              >
+                {t('test_pairing_adjust_hint')}
+              </motion.p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

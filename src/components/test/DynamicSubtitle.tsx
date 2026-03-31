@@ -15,6 +15,7 @@ export const DynamicSubtitle: React.FC<DynamicSubtitleProps> = ({ stage }) => {
       case 'drawing_images': return ['test_desc_images_1', 'test_desc_images_2'];
       case 'drawing_words': return ['test_desc_words_1', 'test_desc_words_2'];
       case 'pairing': return ['test_desc_pairing_1', 'test_desc_pairing_2'];
+      case 'pairing_review': return ['test_pairing_review_title', 'test_pairing_review_subtitle_1'];
       case 'associating': return ['test_desc_associating_1', 'test_desc_associating_2'];
       case 'revealed': return ['test_desc_revealed_1', 'test_desc_revealed_2'];
       default: return ['test_desc_ritual_1', 'test_desc_ritual_2'];
