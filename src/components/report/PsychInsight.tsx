@@ -36,7 +36,7 @@ export const PsychInsight: React.FC<PsychInsightProps> = ({ isAiLoading, display
               <WeavingPlaceholder label={t('report_loading_insight')} />
             ) : (
               <>
-                {displayContent.wishContext && (
+                {displayContent.reportType === 'wish' && displayContent.wishContext && (
                   <div className="mb-12 p-8 bg-ink/[0.02] border border-ink/5 rounded-[2rem] space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-1 h-4 bg-accent/40 rounded-full" />
@@ -59,7 +59,7 @@ export const PsychInsight: React.FC<PsychInsightProps> = ({ isAiLoading, display
                   {displayContent.cardInterpretation}
                 </div>
 
-                {(displayContent.reportType === 'wish' || displayContent.soulMirror || displayContent.destinyWhisper) && (
+                {displayContent.reportType === 'wish' && (
                   <div className="mt-16 space-y-16">
                     {/* 靈魂的顯影 */}
                     <div className="space-y-6">

@@ -43,14 +43,14 @@ export const CardCollage: React.FC<CardCollageProps> = ({ report, displayContent
                   whileHover={{ scale: 1.05, rotate: -10 }}
                   className="absolute w-32 h-48 rounded-xl overflow-hidden shadow-2xl border-4 border-white transform -rotate-8 -translate-x-14 z-10"
                 >
-                  <img src={pair.image.imageUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={pair.image.imageUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </motion.div>
                 {/* Word Card (Front) */}
                 <motion.div 
                   whileHover={{ scale: 1.05, rotate: 10 }}
                   className="absolute w-32 h-48 rounded-xl overflow-hidden shadow-2xl border-4 border-white transform rotate-8 translate-x-14 z-20"
                 >
-                  <img src={pair.word.imageUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={pair.word.imageUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </motion.div>
                 <div className="absolute inset-0 bg-ink/[0.02] rounded-[3rem] -z-10" />
               </div>

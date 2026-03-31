@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { pool } from "../db.ts";
-import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 
 const router = Router();
 
@@ -309,62 +308,9 @@ router.post("/prompts/sync-defaults", async (req, res) => {
 });
 
 router.post("/prompts/test", async (req, res) => {
-  const { prompt, userData, energyData, lang } = req.body;
-  if (!prompt || !userData || !energyData) {
-    return res.status(400).json({ error: "Missing required parameters for testing prompt." });
-  }
-
-  try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server." });
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
-    const input = userData.input || "這是一個測試對話。";
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: [
-        { role: "user", parts: [{ text: `[能量狀態]: ${JSON.stringify(energyData)}\n[她的心聲]: ${input}\n\n請感受這股能量，給予她最溫柔的共鳴與指引。` }] }
-      ],
-      config: {
-        systemInstruction: prompt,
-        responseMimeType: "application/json",
-        thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            content: { type: Type.STRING },
-            energyUpdate: {
-              type: Type.OBJECT,
-              properties: {
-                wood: { type: Type.NUMBER },
-                fire: { type: Type.NUMBER },
-                earth: { type: Type.NUMBER },
-                metal: { type: Type.NUMBER },
-                water: { type: Type.NUMBER },
-              },
-              required: ["wood", "fire", "earth", "metal", "water"]
-            }
-          },
-          required: ["content", "energyUpdate"]
-        }
-      }
-    });
-
-    const parsedResult = JSON.parse(response.text || "{}");
-    const result = {
-      role: "model",
-      content: parsedResult.content,
-      energyUpdate: parsedResult.energyUpdate
-    };
-
-    res.json({ result: JSON.stringify(result) });
-  } catch (err) {
-    console.error("Error testing prompt:", err);
-    res.status(500).json({ error: "Internal server error", details: String(err) });
-  }
+  res.status(400).json({ 
+    error: "AI prompt testing must be performed from the frontend client to ensure correct API key usage." 
+  });
 });
 
 router.delete("/prompts/:id", async (req, res) => {
