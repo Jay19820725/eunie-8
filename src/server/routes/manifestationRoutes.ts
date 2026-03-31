@@ -44,9 +44,17 @@ router.post("/", async (req, res) => {
 router.post("/:id", async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-  const fields = Object.keys(updates);
+
+  // Whitelist allowed columns to prevent SQL injection via keys
+  const allowedFields = ["wish_title", "deadline", "deadline_option", "status", "reminder_sent"];
+  const fields = Object.keys(updates).filter(f => allowedFields.includes(f));
+
+  if (fields.length === 0) {
+    return res.status(400).json({ error: "No valid fields to update" });
+  }
+
   const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(", ");
-  const values = [id, ...Object.values(updates)];
+  const values = [id, ...fields.map(f => updates[f])];
 
   try {
     await pool.query(`UPDATE manifestations SET ${setClause} WHERE id = $1`, values);
