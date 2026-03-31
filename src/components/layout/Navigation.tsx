@@ -102,13 +102,14 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
           {isExpanded ? (
             <motion.div 
               key="expanded-nav"
-              initial={{ x: 50, opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-              animate={{ x: 0, opacity: 1, scale: 1, filter: 'blur(0px)' }}
-              exit={{ x: 50, opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+              initial={{ x: 50, opacity: 0, scale: 0.9 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              exit={{ x: 50, opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className={`relative bg-white/70 backdrop-blur-3xl border px-3 md:px-6 py-2 md:py-3 flex items-center gap-1 md:gap-4 rounded-full shadow-[0_20px_80px_-20px_rgba(0,0,0,0.15)] ${
+              style={{ willChange: 'transform, opacity' }}
+              className={`relative bg-white/80 backdrop-blur-md border px-3 md:px-6 py-2 md:py-3 flex items-center gap-1 md:gap-4 rounded-full shadow-lg ${
                 isPremium 
-                  ? 'border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.15)]' 
+                  ? 'border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
                   : 'border-white/40'
               }`}
             >
@@ -138,12 +139,12 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
                         : 'text-ink/30 hover:text-ink/60'
                     }`}
                   >
-                    {/* Breathing Glow for Active Button */}
+                    {/* Breathing Glow for Active Button (Optimized) */}
                     {isActive && (
                       <motion.div
                         layoutId="active-glow"
                         animate={{ 
-                          opacity: [0.15, 0.35, 0.15],
+                          opacity: [0.3, 0.6, 0.3],
                           scale: [1, 1.05, 1]
                         }}
                         transition={{ 
@@ -151,8 +152,11 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
                           duration: 4, 
                           ease: "easeInOut" 
                         }}
-                        className="absolute inset-0 rounded-full blur-md pointer-events-none"
-                        style={{ backgroundColor: glowColor }}
+                        className="absolute inset-0 rounded-full pointer-events-none"
+                        style={{
+                          background: `radial-gradient(circle, ${glowColor}40 0%, transparent 70%)`,
+                          willChange: 'transform, opacity'
+                        }}
                       />
                     )}
                     
@@ -204,19 +208,23 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
                   : 'bg-white border border-white/20 backdrop-blur-md'
               }`}
             >
-              {/* Breathing Glow Effect */}
+              {/* Breathing Glow Effect (Optimized) */}
               <motion.div
                 animate={{ 
-                  scale: [1, 1.3, 1],
-                  opacity: [0.3, 0.6, 0.3]
+                  scale: [1, 1.2, 1],
+                  opacity: [0.5, 0.8, 0.5]
                 }}
                 transition={{ 
                   repeat: Infinity, 
                   duration: 4, 
                   ease: "easeInOut" 
                 }}
-                className="absolute inset-0 rounded-full blur-xl pointer-events-none"
-                style={{ backgroundColor: glowColor }}
+                className="absolute inset-0 rounded-full pointer-events-none"
+                style={{
+                  background: `radial-gradient(circle, ${glowColor}60 0%, transparent 70%)`,
+                  transform: 'scale(1.5)',
+                  willChange: 'transform, opacity'
+                }}
               />
               
               <Menu size={20} className="text-ink/40 relative z-10" strokeWidth={1.5} />
