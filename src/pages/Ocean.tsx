@@ -412,14 +412,19 @@ export const Ocean: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNav
               >
                 <motion.div
                   animate={isAmbientPlaying ? { 
-                    scale: [1, 1.4, 1], 
-                    opacity: [0.2, 0.5, 0.2] 
+                    scale: [1, 1.3, 1],
+                    opacity: [0.3, 0.6, 0.3]
                   } : { 
                     scale: [1, 1.1, 1], 
-                    opacity: [0.1, 0.2, 0.1] 
+                    opacity: [0.2, 0.3, 0.2]
                   }}
                   transition={{ duration: isAmbientPlaying ? 3 : 6, repeat: Infinity }}
-                  className="absolute inset-0 bg-water/30 rounded-full blur-2xl"
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: 'radial-gradient(circle, rgba(51,166,184,0.4) 0%, transparent 70%)',
+                    willChange: 'transform, opacity',
+                    transform: 'translateZ(0)'
+                  }}
                 />
                 {isAmbientPlaying && (
                   <motion.div
