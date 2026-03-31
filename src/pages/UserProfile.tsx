@@ -2,14 +2,13 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
-import { User, LogOut, LogIn, Shield, Settings, Crown, Sparkles, BookOpen, BarChart3, Map, Star, Activity, Languages, Palette } from 'lucide-react';
+import { User, LogOut, LogIn, Shield, Settings, Crown, Sparkles, BookOpen, BarChart3, Map, Star, Activity, Languages } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTest } from '../store/TestContext';
 import { userService } from '../services/userService';
 import { ManifestationSection } from '../components/profile/ManifestationSection';
 import { UserProfile as UserProfileType } from '../core/types';
 import { useLanguage } from '../i18n/LanguageContext';
-import { ATMOSPHERES, getStoredAtmosphere, setStoredAtmosphere } from '../core/atmospheres';
 
 interface UserProfileProps {
   onNavigate?: (page: string) => void;
@@ -23,7 +22,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onNavigate }) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [editName, setEditName] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false);
-  const [currentAtmosphere, setCurrentAtmosphere] = React.useState(getStoredAtmosphere().id);
 
   React.useEffect(() => {
     if (profile?.displayName) {
@@ -303,50 +301,6 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              {/* Atmosphere Switcher */}
-              <div className="space-y-4 py-2 border-b border-ink/5">
-                <div className="flex items-center gap-2 text-sm text-ink-muted">
-                  <Palette size={14} />
-                  <span>{t('atmosphere_setting' as any)}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {ATMOSPHERES.map((atm) => (
-                    <button
-                      key={atm.id}
-                      onClick={() => {
-                        setStoredAtmosphere(atm.id);
-                        setCurrentAtmosphere(atm.id);
-                      }}
-                      className={`relative flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-500 ${
-                        currentAtmosphere === atm.id 
-                          ? 'border-wood bg-wood/5 shadow-sm' 
-                          : 'border-ink/5 bg-white/40 hover:border-ink/10'
-                      }`}
-                    >
-                      <div className="flex gap-1">
-                        {atm.colors.slice(0, 3).map((color, i) => (
-                          <div 
-                            key={i} 
-                            className="w-3 h-3 rounded-full blur-[1px]" 
-                            style={{ backgroundColor: color }} 
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[10px] tracking-widest text-ink-muted">
-                        {t(atm.nameKey as any)}
-                      </span>
-                      {currentAtmosphere === atm.id && (
-                        <motion.div 
-                          layoutId="atm-active"
-                          className="absolute inset-0 border-2 border-wood rounded-2xl pointer-events-none"
-                          initial={false}
-                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               {[
                 { id: 'daily_reminder', label: t('daily_reminder') },

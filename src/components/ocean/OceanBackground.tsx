@@ -82,37 +82,35 @@ export const OceanBackground: React.FC = () => {
 
       {/* 2. Watercolor Ink Diffusion (Moegi & Asagi) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Moegi (萌黃) - #A8C97F (Optimized without blur) */}
+        {/* Moegi (萌黃) - #A8C97F */}
         <motion.div
           animate={{
-            x: isMobile ? [-25, 25, -25] : [-50, 50, -50],
-            y: isMobile ? [-15, 15, -15] : [-25, 25, -25],
+            x: isMobile ? [-50, 50, -50] : [-100, 100, -100],
+            y: isMobile ? [-25, 25, -25] : [-50, 50, -50],
             scale: [1, 1.1, 1],
-            opacity: [0.3, 0.4, 0.3],
+            opacity: [0.1, 0.15, 0.1],
           }}
           transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -left-1/4 -top-1/4 w-[150%] h-[150%] rounded-full"
+          className={`absolute -left-1/4 -top-1/4 w-full h-full rounded-full ${isMobile ? 'blur-[60px]' : 'blur-[120px]'}`}
           style={{ 
-            background: 'radial-gradient(circle, rgba(168,201,127,0.3) 0%, rgba(168,201,127,0.1) 40%, transparent 70%)',
-            willChange: 'transform, opacity',
-            transform: 'translateZ(0)'
+            background: 'radial-gradient(circle, #A8C97F 0%, transparent 70%)',
+            willChange: 'transform, opacity'
           }}
         />
         
-        {/* Asagi (淺蔥) - #33A6B8 (Optimized without blur) */}
+        {/* Asagi (淺蔥) - #33A6B8 */}
         <motion.div
           animate={{
-            x: isMobile ? [25, -25, 25] : [50, -50, 50],
-            y: isMobile ? [15, -15, 15] : [25, -25, 25],
+            x: isMobile ? [50, -50, 50] : [100, -100, 100],
+            y: isMobile ? [25, -25, 25] : [50, -50, 50],
             scale: [1.05, 0.95, 1.05],
-            opacity: [0.2, 0.3, 0.2],
+            opacity: [0.08, 0.12, 0.08],
           }}
           transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -right-1/4 -bottom-1/4 w-[150%] h-[150%] rounded-full"
+          className={`absolute -right-1/4 -bottom-1/4 w-full h-full rounded-full ${isMobile ? 'blur-[80px]' : 'blur-[150px]'}`}
           style={{ 
-            background: 'radial-gradient(circle, rgba(51,166,184,0.3) 0%, rgba(51,166,184,0.1) 40%, transparent 70%)',
-            willChange: 'transform, opacity',
-            transform: 'translateZ(0)'
+            background: 'radial-gradient(circle, #33A6B8 0%, transparent 70%)',
+            willChange: 'transform, opacity'
           }}
         />
       </div>
@@ -162,16 +160,23 @@ export const OceanBackground: React.FC = () => {
               top: `${spot.top}%`,
               width: `${spot.size}px`,
               height: `${spot.size}px`,
-              background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+              backgroundColor: 'white',
               borderRadius: '50%',
-              willChange: 'transform, opacity',
-              transform: 'translateZ(0)'
+              boxShadow: '0 0 8px rgba(255, 255, 255, 0.5)',
+              filter: 'blur(0.5px)',
+              willChange: 'transform, opacity'
             }}
           />
         ))}
       </div>
 
-      {/* 5. Washi Grain Texture Overlay - Removed for performance optimization */}
+      {/* 5. Washi Grain Texture Overlay - Simplified for Mobile */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.02]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
 
       {/* 6. Subtle Surface Shimmer */}
       <motion.div

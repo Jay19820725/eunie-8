@@ -102,26 +102,16 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
           {isExpanded ? (
             <motion.div 
               key="expanded-nav"
-              initial={{ x: 50, opacity: 0, scale: 0.9 }}
+              initial={{ x: 30, opacity: 0, scale: 0.95 }}
               animate={{ x: 0, opacity: 1, scale: 1 }}
-              exit={{ x: 50, opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              style={{ willChange: 'transform, opacity' }}
-              className={`relative bg-white/80 backdrop-blur-md border px-3 md:px-6 py-2 md:py-3 flex items-center gap-1 md:gap-4 rounded-full shadow-lg ${
+              exit={{ x: 30, opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className={`relative bg-white/80 backdrop-blur-xl border px-3 md:px-6 py-2 md:py-3 flex items-center gap-1 md:gap-4 rounded-full shadow-lg ${
                 isPremium 
-                  ? 'border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
+                  ? 'border-emerald-500/20' 
                   : 'border-white/40'
               }`}
             >
-              {/* 訂閱用戶專屬流光背景 */}
-              {isPremium && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/5 via-transparent to-emerald-500/5 pointer-events-none"
-                />
-              )}
-
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPath === item.path;
@@ -133,30 +123,17 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
                       onNavigate(item.path);
                       resetCollapseTimer();
                     }}
-                    className={`relative flex items-center gap-2 transition-all duration-500 px-3 md:px-4 py-2 rounded-full ${
+                    className={`relative flex items-center gap-2 transition-all duration-300 px-3 md:px-4 py-2 rounded-full ${
                       isActive 
                         ? 'text-ink' 
                         : 'text-ink/30 hover:text-ink/60'
                     }`}
                   >
-                    {/* Breathing Glow for Active Button (Optimized) */}
                     {isActive && (
                       <motion.div
-                        layoutId="active-glow"
-                        animate={{ 
-                          opacity: [0.3, 0.6, 0.3],
-                          scale: [1, 1.05, 1]
-                        }}
-                        transition={{ 
-                          repeat: Infinity, 
-                          duration: 4, 
-                          ease: "easeInOut" 
-                        }}
+                        layoutId="active-bg"
                         className="absolute inset-0 rounded-full pointer-events-none"
-                        style={{
-                          background: `radial-gradient(circle, ${glowColor}40 0%, transparent 70%)`,
-                          willChange: 'transform, opacity'
-                        }}
+                        style={{ backgroundColor: `${glowColor}15` }}
                       />
                     )}
                     
@@ -168,7 +145,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
                           initial={{ width: 0, opacity: 0, x: -5 }}
                           animate={{ width: 'auto', opacity: 1, x: 0 }}
                           exit={{ width: 0, opacity: 0, x: -5 }}
-                          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          transition={{ duration: 0.3 }}
                           className="text-[10px] whitespace-nowrap tracking-[0.1em] font-sans font-medium overflow-hidden relative z-10"
                         >
                           {item.label}
@@ -196,38 +173,19 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 lastManualToggleRef.current = Date.now();
                 setIsExpanded(true);
               }}
-              className={`relative w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 ${
+              className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
                 isPremium 
-                  ? 'bg-emerald-50 border border-emerald-500/30' 
-                  : 'bg-white border border-white/20 backdrop-blur-md'
+                  ? 'bg-emerald-50 border border-emerald-500/20' 
+                  : 'bg-white/90 border border-white/40 backdrop-blur-md'
               }`}
             >
-              {/* Breathing Glow Effect (Optimized) */}
-              <motion.div
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.5, 0.8, 0.5]
-                }}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 4, 
-                  ease: "easeInOut" 
-                }}
-                className="absolute inset-0 rounded-full pointer-events-none"
-                style={{
-                  background: `radial-gradient(circle, ${glowColor}60 0%, transparent 70%)`,
-                  transform: 'scale(1.5)',
-                  willChange: 'transform, opacity'
-                }}
-              />
-              
-              <Menu size={20} className="text-ink/40 relative z-10" strokeWidth={1.5} />
+              <Menu size={18} className="text-ink/40 relative z-10" strokeWidth={1.5} />
             </motion.button>
           )}
         </AnimatePresence>

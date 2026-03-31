@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { ArrowRight, Check, Maximize2, ChevronDown } from 'lucide-react';
 import { ImageCard, WordCard, CardPair } from '../../core/types';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { ZoomHint } from './ZoomHint';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -44,9 +45,15 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [hasZoomed, setHasZoomed] = useState(false);
   const imageSectionRef = useRef<HTMLDivElement>(null);
   const wordSectionRef = useRef<HTMLDivElement>(null);
   const reviewSectionRef = useRef<HTMLDivElement>(null);
+
+  const handleZoom = (card: ImageCard | WordCard) => {
+    setHasZoomed(true);
+    onZoom(card);
+  };
 
   const handleCardClick = (cardId: string, type: 'image' | 'word') => {
     if (type === 'image') {
@@ -175,15 +182,18 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
                       isSelected ? 'border-emerald-400/50 shadow-emerald-900/10' : 'border-white/20'
                     }`}>
                       <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                      {images.indexOf(card) === 0 && !hasZoomed && !isPaired && (
+                        <ZoomHint show={!hasZoomed} />
+                      )}
                       {!isPaired && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onZoom(card);
+                            handleZoom(card);
                           }}
-                          className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-ink/40 hover:text-ink hover:bg-white/60 transition-all opacity-0 group-hover:opacity-100 z-10"
+                          className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all z-10"
                         >
-                          <Maximize2 size={14} />
+                          <Maximize2 size={10} />
                         </button>
                       )}
                     </div>
@@ -264,11 +274,14 @@ export const PairingStage: React.FC<PairingStageProps> = ({ images, words, onCom
                     isSelected ? 'border-blue-400 shadow-blue-900/10' : 'border-white/20'
                   }`}>
                     <img src={card.imageUrl} alt="" className="w-full h-full object-cover" />
+                    {words.indexOf(card) === 0 && !hasZoomed && !isPaired && (
+                      <ZoomHint show={!hasZoomed} />
+                    )}
                     {!isPaired && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onZoom(card);
+                          handleZoom(card);
                         }}
                         className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-ink/40 hover:text-ink hover:bg-white/60 transition-all opacity-0 group-hover:opacity-100 z-10"
                       >

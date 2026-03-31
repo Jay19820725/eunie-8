@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ImageCard, WordCard } from '../core/types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTest } from '../store/TestContext';
 import { LuminaBottle } from '../components/ui/LuminaBottle';
@@ -7,6 +8,7 @@ import { Sparkles, ArrowRight, Maximize2, RefreshCw } from 'lucide-react';
 import { ShuffleAnimation } from '../components/ShuffleAnimation';
 import { EunieCard } from '../components/EunieCard';
 import { CardZoomModal } from '../components/CardZoomModal';
+import { ZoomHint } from '../components/test/ZoomHint';
 import { useLanguage } from '../i18n/LanguageContext';
 import { preloadDecks } from '../services/cardEngine';
 import { PairingStage } from '../components/test/PairingStage';
@@ -69,6 +71,13 @@ export const EnergyTest: React.FC<{ onComplete: () => void }> = ({ onComplete })
     allImagesFlipped,
     allWordsFlipped,
   } = useEnergyTestState(onComplete);
+
+  const [hasZoomed, setHasZoomed] = React.useState(false);
+
+  const handleZoom = (card: ImageCard | WordCard) => {
+    setHasZoomed(true);
+    setZoomedCard(card);
+  };
 
   useEffect(() => {
     preloadDecks();
@@ -462,20 +471,23 @@ export const EnergyTest: React.FC<{ onComplete: () => void }> = ({ onComplete })
                     <div className="flex gap-2">
                       <div 
                         className="w-20 h-32 md:w-24 md:h-40 rounded-xl overflow-hidden shadow-lg cursor-zoom-in relative group"
-                        onClick={() => setZoomedCard(pair.image)}
+                        onClick={() => handleZoom(pair.image)}
                       >
                         <img src={pair.image.imageUrl} alt="" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {i === 0 && !hasZoomed && (
+                          <ZoomHint show={!hasZoomed} />
+                        )}
+                        <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all z-10">
+                          <Maximize2 size={10} />
                         </div>
                       </div>
                       <div 
                         className="w-20 h-32 md:w-24 md:h-40 rounded-xl overflow-hidden shadow-lg cursor-zoom-in relative group"
-                        onClick={() => setZoomedCard(pair.word)}
+                        onClick={() => handleZoom(pair.word)}
                       >
                         <img src={pair.word.imageUrl} alt="" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all z-10">
+                          <Maximize2 size={10} />
                         </div>
                       </div>
                     </div>

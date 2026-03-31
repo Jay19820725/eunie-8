@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { Sparkles, ArrowRight, Maximize2, PenLine, CheckCircle2 } from 'lucide-react';
 import { ImageCard, WordCard, CardPair } from '../../core/types';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { ZoomHint } from './ZoomHint';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,8 +38,13 @@ interface AssociationStageProps {
 export const AssociationStage: React.FC<AssociationStageProps> = ({ pairs, onComplete, onZoom }) => {
   const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [hasZoomed, setHasZoomed] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   
+  const handleZoom = (card: ImageCard | WordCard) => {
+    setHasZoomed(true);
+    onZoom(card);
+  };
   const [modes, setModes] = useState<{ [key: string]: 'guided' | 'free' }>(
     pairs.reduce((acc, _, i) => ({ ...acc, [i]: 'guided' }), {})
   );
@@ -160,24 +166,27 @@ export const AssociationStage: React.FC<AssociationStageProps> = ({ pairs, onCom
                   className="w-20 h-32 md:w-24 md:h-36 rounded-xl overflow-hidden shadow-lg cursor-zoom-in relative group"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onZoom(pair.image);
+                    handleZoom(pair.image);
                   }}
                 >
                   <img src={pair.image.imageUrl} alt="" className="w-full h-full object-cover" draggable="false" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                    <Maximize2 size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {i === 0 && !hasZoomed && (
+                    <ZoomHint show={!hasZoomed} />
+                  )}
+                  <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all z-10">
+                    <Maximize2 size={10} />
                   </div>
                 </div>
                 <div 
                   className="w-20 h-32 md:w-24 md:h-36 rounded-xl overflow-hidden shadow-lg cursor-zoom-in relative group"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onZoom(pair.word);
+                    handleZoom(pair.word);
                   }}
                 >
                   <img src={pair.word.imageUrl} alt="" className="w-full h-full object-cover" draggable="false" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                    <Maximize2 size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-white/40 backdrop-blur-md border border-white/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all z-10">
+                    <Maximize2 size={10} />
                   </div>
                 </div>
               </div>
