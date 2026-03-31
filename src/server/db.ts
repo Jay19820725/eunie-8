@@ -159,10 +159,14 @@ export async function initializeDatabase() {
       const promptCheck = await pool.query("SELECT count(*) FROM ai_prompts WHERE report_type = $1", [type]);
       if (parseInt(promptCheck.rows[0].count) === 0) {
         const typeDefaults = defaultPrompts.filter(p => p.type === type);
-        for (const p of typeDefaults) {
+        if (typeDefaults.length > 0) {
+          const values = typeDefaults.map((_, i) =>
+            `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`
+          ).join(", ");
+          const params = typeDefaults.flatMap(p => [p.type, p.key, p.zh, p.ja]);
           await pool.query(
-            "INSERT INTO ai_prompts (report_type, section_key, prompt_zh, prompt_ja) VALUES ($1, $2, $3, $4)",
-            [p.type, p.key, p.zh, p.ja]
+            `INSERT INTO ai_prompts (report_type, section_key, prompt_zh, prompt_ja) VALUES ${values}`,
+            params
           );
         }
       }
@@ -331,11 +335,17 @@ export async function initializeDatabase() {
       }
     ];
 
-    for (const track of seedTracks) {
+    if (seedTracks.length > 0) {
+      const values = seedTracks.map((_, i) =>
+        `($${i * 7 + 1}, $${i * 7 + 2}, $${i * 7 + 3}, $${i * 7 + 4}, $${i * 7 + 5}, $${i * 7 + 6}, $${i * 7 + 7})`
+      ).join(", ");
+      const params = seedTracks.flatMap(track => [
+        track.name, track.title, track.artist, track.category, track.element, track.url, track.sort_order
+      ]);
       await pool.query(
         `INSERT INTO music_tracks (name, title, artist, category, element, url, sort_order) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (url) DO NOTHING`,
-        [track.name, track.title, track.artist, track.category, track.element, track.url, track.sort_order]
+         VALUES ${values} ON CONFLICT (url) DO NOTHING`,
+        params
       );
     }
 
@@ -360,12 +370,16 @@ export async function initializeDatabase() {
       { tag: 'blessing', zh: '福氣滿滿', ja: '福徳円満', order: 10 }
     ];
 
-    for (const bt of blessingTags) {
+    if (blessingTags.length > 0) {
+      const values = blessingTags.map((_, i) =>
+        `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`
+      ).join(", ");
+      const params = blessingTags.flatMap(bt => [bt.tag, bt.zh, bt.ja, bt.order]);
       await pool.query(
         `INSERT INTO bottle_tags (tag, zh, ja, sort_order) 
-         VALUES ($1, $2, $3, $4) 
+         VALUES ${values}
          ON CONFLICT (tag) DO UPDATE SET zh = EXCLUDED.zh, ja = EXCLUDED.ja, sort_order = EXCLUDED.sort_order`,
-        [bt.tag, bt.zh, bt.ja, bt.order]
+        params
       );
     }
 
