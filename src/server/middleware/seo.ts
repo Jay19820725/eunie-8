@@ -3,7 +3,8 @@ import { pool } from "../db.ts";
 
 export const seoMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const userAgent = req.headers["user-agent"] || "";
-  const isCrawler = /facebookexternalhit|line-poker|Twitterbot|googlebot|bingbot|linkedinbot/i.test(userAgent);
+  // LINE crawler can identify as facebookexternalhit, line-poker, or contain "Line/"
+  const isCrawler = /facebookexternalhit|line-poker|line\/|Twitterbot|googlebot|bingbot|linkedinbot|slackbot/i.test(userAgent);
 
   if (!isCrawler) {
     return next();
@@ -13,16 +14,17 @@ export const seoMiddleware = async (req: Request, res: Response, next: NextFunct
     let title = "EUNIE 嶼妳 | 懂妳的能量，平衡妳的生活";
     let description = "透過五行能量卡片，探索內在自我，獲得每日心靈指引與能量平衡。";
     let ogImage = "https://picsum.photos/seed/lumina-og/1200/630";
-    const url = `${process.env.APP_URL || 'https://' + req.get('host')}${req.originalUrl}`;
+    
+    const host = req.get('host');
+    const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const url = `${baseUrl}${req.originalUrl}`;
 
-    // Language detection for SEO
+    // Extract report ID from path if not in params (since this might be used as global middleware)
+    const reportIdMatch = req.path.match(/^\/report\/([^\/]+)/);
+    const reportId = req.params.id || (reportIdMatch ? reportIdMatch[1] : null);
+
     let seoLang = 'zh';
-    if (req.params.id) {
-      const langResult = await pool.query("SELECT lang FROM energy_reports WHERE id = $1", [req.params.id]);
-      if (langResult.rows.length > 0) {
-        seoLang = langResult.rows[0].lang || 'zh';
-      }
-    }
 
     const seoTranslations: Record<string, { title: string, description: string }> = {
       zh: {
@@ -35,12 +37,7 @@ export const seoMiddleware = async (req: Request, res: Response, next: NextFunct
       }
     };
 
-    if (seoLang === 'ja') {
-      title = seoTranslations.ja.title;
-      description = seoTranslations.ja.description;
-    }
-
-    // Fetch global SEO settings
+    // Fetch global SEO settings first
     const seoResult = await pool.query("SELECT value FROM site_settings WHERE key = 'seo'");
     if (seoResult.rows.length > 0) {
       const seo = seoResult.rows[0].value;
@@ -50,34 +47,49 @@ export const seoMiddleware = async (req: Request, res: Response, next: NextFunct
     }
 
     // If it's a report page, fetch report-specific data
-    if (req.params.id) {
-      const reportResult = await pool.query("SELECT * FROM energy_reports WHERE id = $1", [req.params.id]);
+    if (reportId) {
+      const reportResult = await pool.query("SELECT * FROM energy_reports WHERE id = $1", [reportId]);
       if (reportResult.rows.length > 0) {
         const report = reportResult.rows[0];
-        title = report.today_theme || title;
-        // Use selected thumbnail if available, otherwise use dominant element image or default
-        ogImage = report.share_thumbnail || ogImage;
+        seoLang = report.lang || 'zh';
+        
+        if (seoLang === 'ja') {
+          title = report.today_theme || seoTranslations.ja.title;
+        } else {
+          title = report.today_theme || seoTranslations.zh.title;
+        }
+
+        // Use selected thumbnail if available
+        if (report.share_thumbnail) {
+          ogImage = report.share_thumbnail;
+        }
+        
+        // Ensure ogImage is absolute
+        if (ogImage.startsWith('/')) {
+          ogImage = `${baseUrl}${ogImage}`;
+        }
         
         // Language-aware description
-        const reportLang = report.lang || 'zh';
         const elementMap: Record<string, Record<string, string>> = {
           zh: { wood: '木', fire: '火', earth: '土', metal: '金', water: '水', none: '平衡' },
           ja: { wood: '木', fire: '火', earth: '土', metal: '金', water: '水', none: 'バランス' }
         };
         const dominant = (report.dominant_element || 'none').toLowerCase();
-        const translatedElement = elementMap[reportLang as 'zh' | 'ja']?.[dominant] || report.dominant_element;
+        const translatedElement = elementMap[seoLang as 'zh' | 'ja']?.[dominant] || report.dominant_element;
 
-        if (reportLang === 'ja') {
+        if (seoLang === 'ja') {
           description = `EUNIEでのエネルギー分析結果です。主要な要素：${translatedElement}。`;
-          if (!report.today_theme) {
-            title = seoTranslations.ja.title;
-          }
         } else {
           description = `這是我在 EUNIE 的能量剖析結果。主導元素：${translatedElement}。`;
-          if (!report.today_theme) {
-            title = seoTranslations.zh.title;
-          }
         }
+      }
+    } else {
+      // Default language based on query or header if not a report
+      const langQuery = req.query.lang as string;
+      if (langQuery === 'ja') {
+        seoLang = 'ja';
+        title = seoTranslations.ja.title;
+        description = seoTranslations.ja.description;
       }
     }
 
@@ -107,6 +119,7 @@ export const seoMiddleware = async (req: Request, res: Response, next: NextFunct
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script type="text/javascript">
+          // Redirect to the actual SPA route
           window.location.href = "${req.originalUrl}";
         </script>
       </head>
@@ -117,9 +130,10 @@ export const seoMiddleware = async (req: Request, res: Response, next: NextFunct
       </body>
       </html>
     `;
-    res.send(html);
+    res.set('Content-Type', 'text/html');
+    return res.send(html);
   } catch (err) {
     console.error("SEO Injection Error:", err);
-    next();
+    return next();
   }
 };

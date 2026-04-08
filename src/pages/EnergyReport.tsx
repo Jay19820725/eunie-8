@@ -12,22 +12,9 @@ import { CardCollage } from '../components/report/CardCollage';
 import { PoeticLoading } from '../components/report/PoeticLoading';
 import { CastBottleModal } from '../components/ocean/CastBottleModal';
 
-const WeavingLoader: React.FC<{ label?: string }> = ({ label }) => {
-  const { t } = useLanguage();
-  const displayLabel = label || t('report_weaving');
-  return (
-    <div className="flex flex-col items-center justify-center py-24 space-y-8">
-      <div className="relative w-12 h-12">
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 border border-ink/5 border-t-ink/40 rounded-full"
-        />
-      </div>
-      <span className="text-[10px] uppercase tracking-[0.8em] text-ink/20 animate-pulse">{displayLabel}</span>
-    </div>
-  );
-};
+import { auth } from '../lib/firebase';
+
+import { CalmLoader } from '../components/ui/CalmLoader';
 
 import { LoopStage } from '../core/types';
 
@@ -48,6 +35,7 @@ export const EnergyReport: React.FC<{
     selectedShareThumbnail,
     handleSelectThumbnail,
     isAiLoading,
+    reAnalyze
   } = useEnergyReport(onReset);
 
   const [showCastModal, setShowCastModal] = React.useState(false);
@@ -64,7 +52,7 @@ export const EnergyReport: React.FC<{
   if (isLoadingShared) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FDFCF8]">
-        <WeavingLoader label={t('report_weaving')} />
+        <CalmLoader label={t('report_weaving')} />
       </div>
     );
   }
@@ -313,6 +301,16 @@ export const EnergyReport: React.FC<{
             >
               <Sparkles size={16} /> {t('ocean_cast_btn')}
             </Button>
+            {auth.currentUser?.email === 'jsweb.jay@gmail.com' && (
+              <Button
+                onClick={reAnalyze}
+                disabled={isAiLoading}
+                variant="outline"
+                className="h-16 w-full gap-4 text-[10px] uppercase tracking-[0.4em] font-light border-accent/20 text-accent hover:bg-accent/5 mt-4"
+              >
+                <RefreshCw size={14} className={isAiLoading ? "animate-spin" : ""} /> 再次織就靈魂報告
+              </Button>
+            )}
           </div>
 
           {isGuest && (

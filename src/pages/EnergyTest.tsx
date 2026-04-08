@@ -17,6 +17,8 @@ import { WishInputStage } from '../components/test/WishInputStage';
 import { DynamicSubtitle } from '../components/test/DynamicSubtitle';
 import { useEnergyTestState } from '../hooks/useEnergyTestState';
 
+import { CalmLoader } from '../components/ui/CalmLoader';
+
 // Narrative animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -100,91 +102,17 @@ export const EnergyTest: React.FC<{ onComplete: () => void }> = ({ onComplete })
             exit={{ opacity: 0 }}
             className="fixed inset-0 flex items-center justify-center backdrop-blur-xl z-[100]"
           >
-            <div className="flex flex-col items-center gap-10">
-              <div className="relative w-24 h-24">
-                {/* Outer Ring */}
-                <motion.div 
-                  animate={{ 
-                    rotate: 360,
-                    scale: [1, 1.05, 1],
-                    borderColor: ['rgba(20,20,20,0.05)', 'rgba(20,20,20,0.15)', 'rgba(20,20,20,0.05)']
-                  }}
-                  transition={{ 
-                    rotate: { duration: 8, repeat: Infinity, ease: "linear" },
-                    scale: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-                    borderColor: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-                  }}
-                  className="absolute inset-0 border-[0.5px] rounded-full"
-                />
-                
-                {/* Middle Spinning Ring */}
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-2 border-2 border-ink/5 border-t-ink/20 rounded-full"
-                />
-                
-                {/* Inner Counter-Spinning Ring */}
-                <motion.div 
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-6 border border-ink/5 border-b-ink/10 rounded-full"
-                />
-
-                {/* Center Pulse */}
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={isReshuffling ? { 
-                    scale: [0.8, 1.2, 0.8],
-                    opacity: [0.2, 0.5, 0.2]
-                  } : { opacity: 1 }}
-                  transition={isReshuffling ? { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 } : {}}
-                  className="absolute inset-10 bg-ink/5 rounded-full blur-xl"
-                />
-              </div>
-
-              <div className="space-y-4 text-center max-w-[280px] md:max-w-xs">
-                {isReshuffling ? (
-                  <motion.span 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="text-[13px] md:text-sm tracking-[0.2em] text-ink/70 font-serif block italic animate-pulse"
-                  >
-                    {t('test_resensing_energy')}
-                  </motion.span>
-                ) : isGenerating ? (
-                  <>
-                    <AnimatePresence mode="wait">
-                      <motion.span 
-                        key={loadingTime < 3 ? 's1' : loadingTime < 6 ? 's2' : 's3'}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="text-[13px] md:text-sm tracking-[0.2em] text-ink/70 font-serif block italic min-h-[1.5em]"
-                      >
-                        {loadingTime < 3 ? t('report_loading_stage_1') : 
-                         loadingTime < 6 ? t('report_loading_stage_2') : 
-                         t('report_loading_stage_3')}
-                      </motion.span>
-                    </AnimatePresence>
-                    <motion.p 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
-                      className="text-[10px] text-ink/30 tracking-[0.3em] uppercase leading-relaxed font-light"
-                    >
-                      {t('report_loading_subtitle')}
-                    </motion.p>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[11px] uppercase tracking-[0.8em] text-ink/40 font-light block">{t('report_weaving')}</span>
-                    <p className="text-[10px] text-ink/20 tracking-widest uppercase animate-pulse">Synchronizing with the universe...</p>
-                  </>
-                )}
-              </div>
-            </div>
+            <CalmLoader 
+              label={
+                isReshuffling ? t('test_resensing_energy') : 
+                isGenerating ? (
+                  loadingTime < 3 ? t('report_loading_stage_1') : 
+                  loadingTime < 6 ? t('report_loading_stage_2') : 
+                  t('report_loading_stage_3')
+                ) : t('report_weaving')
+              }
+              subtitle={isGenerating ? t('report_loading_subtitle') : undefined}
+            />
           </motion.div>
         )}
       </AnimatePresence>

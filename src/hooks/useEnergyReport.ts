@@ -3,7 +3,7 @@ import { useTest } from '../store/TestContext';
 import { useLanguage } from '../i18n/LanguageContext';
 
 export const useEnergyReport = (onReset: () => void) => {
-  const { report, setReport } = useTest();
+  const { report, setReport, reGenerateAIAnalysis } = useTest();
   const { language: currentLangCode, setLanguage } = useLanguage();
   const [isLoadingShared, setIsLoadingShared] = useState(false);
   const [showWeavingDialog, setShowWeavingDialog] = useState(false);
@@ -105,6 +105,7 @@ export const useEnergyReport = (onReset: () => void) => {
     setShowWeavingDialog,
     selectedShareThumbnail,
     handleSelectThumbnail,
+    reAnalyze: reGenerateAIAnalysis,
     isAiLoading: !report?.isAiComplete && !report?.todayTheme,
   };
 };
