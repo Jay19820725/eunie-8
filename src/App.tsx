@@ -79,6 +79,14 @@ function AppContent() {
     return cleanup;
   }, [profile?.uid, location.pathname]);
 
+  // 清除 openExternalBrowser=1 參數（LINE 跳轉外部瀏覽器後殘留）
+  useEffect(() => {
+    if (window.location.search.includes('openExternalBrowser=1')) {
+      const clean = window.location.href.replace(/[?&]openExternalBrowser=1/, '');
+      window.history.replaceState({}, document.title, clean);
+    }
+  }, []);
+
   // Handle Auth Prompt from Navigate
   useEffect(() => {
     if (location.state?.showAuth) {

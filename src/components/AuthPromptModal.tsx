@@ -10,7 +10,7 @@ const isLineWebView = () => /Line\//i.test(navigator.userAgent || '');
 const openInExternalBrowser = () => {
   const url = window.location.href;
   const separator = url.includes('?') ? '&' : '?';
-  window.location.href = `${url}${separator}openExternalBrowser=1`;
+  window.location.replace(`${url}${separator}openExternalBrowser=1`);
 };
 
 interface AuthPromptModalProps {

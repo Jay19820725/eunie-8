@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isLineBrowser) {
       const url = window.location.href;
       const sep = url.includes('?') ? '&' : '?';
-      window.location.href = `${url}${sep}openExternalBrowser=1`;
+      window.location.replace(`${url}${sep}openExternalBrowser=1`);
       setIsLoggingIn(false);
       return;
     }
