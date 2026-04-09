@@ -380,7 +380,7 @@ export const translations = {
     // Auth Prompt
     auth_prompt_title: "開啟靈魂之旅",
     auth_prompt_desc: "為了保存您的能量報告並開啟每日成長追蹤，請先登入您的專屬空間。",
-    auth_prompt_login_btn: "開啟靈魂之旅 (Google 登入)",
+    auth_prompt_login_btn: "開啟靈魂之旅",
   },
   ja: {
     // General
@@ -764,7 +764,7 @@ export const translations = {
     // Auth Prompt
     auth_prompt_title: "魂の旅を始める",
     auth_prompt_desc: "エネルギーレポートを保存し、日々の成長を追蹤するために、まずは専用スペースにサインインしてください。",
-    auth_prompt_login_btn: "魂の旅を始める (Googleでサインイン)",
+    auth_prompt_login_btn: "魂の旅を始める",
   }
 };
 
