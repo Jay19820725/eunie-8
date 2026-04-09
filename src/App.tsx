@@ -119,11 +119,19 @@ function AppContent() {
   };
 
   const currentPath = location.pathname.replace('/', '') || 'home';
+  const isOcean = location.pathname === '/ocean';
 
   return (
     <div className="relative min-h-screen selection:bg-wood/10 overflow-x-hidden">
       <SEOManager />
       <KomorebiBackground />
+
+      {/* Ocean 深色背景疊層：進入時淡入，離開時淡出 */}
+      <motion.div
+        className="fixed inset-0 pointer-events-none z-0"
+        animate={{ backgroundColor: isOcean ? '#0A1128' : 'rgba(0,0,0,0)' }}
+        transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+      />
       
       <Suspense fallback={<SanctuaryLoader />}>
         <AnimatePresence mode="wait">

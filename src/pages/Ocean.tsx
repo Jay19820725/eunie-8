@@ -345,7 +345,7 @@ export const Ocean: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNav
 
   if (showPremiumModal) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A1128] p-6">
+      <div className="min-h-screen flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white/10 backdrop-blur-md p-8 rounded-3xl shadow-2xl text-center border border-white/10">
           <div className="w-16 h-16 bg-water/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Sparkles className="w-8 h-8 text-water" />
@@ -370,7 +370,7 @@ export const Ocean: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNav
   }
 
   return (
-    <div className="relative min-h-screen bg-[#0A1128] overflow-hidden flex flex-col items-center">
+    <div className="relative min-h-screen overflow-hidden flex flex-col items-center">
       <OceanBackground />
 
       {/* Top Navigation Toggle */}
