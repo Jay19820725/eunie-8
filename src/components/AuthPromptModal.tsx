@@ -5,12 +5,13 @@ import { Button } from './ui/Button';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../hooks/useAuth';
 
-const isLineWebView = () => /Line\//i.test(navigator.userAgent || '');
+const isInAppBrowser = () =>
+  /Line\/|FBAN|FBAV|Instagram|MicroMessenger|LIFF|wv\b|Version\/[\d.]+ Chrome\/[\d.]+ Mobile/i.test(navigator.userAgent || '');
 
 const openInExternalBrowser = () => {
-  const url = window.location.href;
-  const separator = url.includes('?') ? '&' : '?';
-  window.location.replace(`${url}${separator}openExternalBrowser=1`);
+  const url = window.location.href.split('?')[0];
+  const cleanUrl = url + (window.location.hash || '');
+  window.location.replace(`${cleanUrl}?openExternalBrowser=1`);
 };
 
 interface AuthPromptModalProps {
@@ -35,7 +36,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({ isOpen, onClos
     }
   }, [isOpen, profile?.uid, onClose, onSuccess]);
 
-  const lineWebView = isLineWebView();
+  const lineWebView = isInAppBrowser();
 
   const handleLogin = async () => {
     if (lineWebView) {

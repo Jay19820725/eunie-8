@@ -90,22 +90,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     provider.setCustomParameters({ prompt: 'select_account' });
 
     const ua = navigator.userAgent || '';
-    // LINE 瀏覽器：Google 拒絕 WebView 中的 OAuth，必須在外部瀏覽器開啟
-    const isLineBrowser = /Line\//i.test(ua);
-    if (isLineBrowser) {
-      const url = window.location.href;
-      const sep = url.includes('?') ? '&' : '?';
-      window.location.replace(`${url}${sep}openExternalBrowser=1`);
+
+    // 偵測所有 in-app 瀏覽器 / WebView（Google 拒絕在此進行 OAuth）
+    const isInAppBrowser = /Line\/|FBAN|FBAV|Instagram|MicroMessenger|LIFF|wv\b|Version\/[\d.]+ Chrome\/[\d.]+ Mobile/i.test(ua);
+    if (isInAppBrowser) {
+      // LINE 支援 openExternalBrowser=1，其他 in-app 瀏覽器嘗試同樣方式
+      const url = window.location.href.split('?')[0]; // 先清理現有 query
+      const cleanUrl = url + (window.location.hash || '');
+      window.location.replace(`${cleanUrl}?openExternalBrowser=1`);
       setIsLoggingIn(false);
       return;
     }
 
-    // 偵測其他 Android WebView，使用 redirect 避免 popup 被封鎖
-    const isWebView = /LIFF|wv\b|Version\/[\d.]+ Chrome/.test(ua);
+    // 一般行動瀏覽器（iOS Safari / Android Chrome）：redirect 比 popup 穩定
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
 
     try {
-      console.log("AuthContext: Starting Google Login...", isWebView ? "(redirect)" : "(popup)");
-      if (isWebView) {
+      console.log("AuthContext: Starting Google Login...", isMobile ? "(redirect)" : "(popup)");
+      if (isMobile) {
         await signInWithRedirect(auth, provider);
         return; // redirect 會離開頁面，不需要後續處理
       }
