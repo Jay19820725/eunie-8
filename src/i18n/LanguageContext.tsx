@@ -73,7 +73,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         };
         document.head.appendChild(link);
       }
-      if (link.href !== url) {
+      if (link.getAttribute('href') !== url) {
         link.href = url;
       }
     };
