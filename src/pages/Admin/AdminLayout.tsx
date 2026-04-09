@@ -183,8 +183,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </div>
       </main>
 
-      {/* Grid Texture Overlay */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] -z-10" />
+      {/* Grid Texture Overlay - removed external URL for WebView compatibility */}
       <div className="fixed inset-0 pointer-events-none border-[40px] border-[#0A0A0A] -z-10" />
     </div>
   );

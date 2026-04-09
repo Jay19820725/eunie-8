@@ -232,7 +232,7 @@ function AppContent() {
         )}
       </AnimatePresence>
       
-      <div className="fixed inset-0 pointer-events-none opacity-[0.015] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] -z-20" />
+      
     </div>
   );
 }

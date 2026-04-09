@@ -43,7 +43,7 @@ export const LuminaCard: React.FC<LuminaCardProps> = ({
         <div className="absolute inset-0 backface-hidden z-10">
           <div className="w-full h-full bg-[#FDFCF8] rounded-3xl shadow-xl flex flex-col items-center justify-center p-6 group overflow-hidden border border-ink/5">
             {/* Washi Texture Overlay */}
-            <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]" />
+            
             
             {/* Enso (Zen Circle) Pattern */}
             <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center">

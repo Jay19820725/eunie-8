@@ -57,14 +57,20 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     document.documentElement.style.setProperty('--font-display', currentFonts.display.family);
     document.documentElement.style.setProperty('--font-body', currentFonts.body.family);
 
-    // 2. Inject Font Links if not already present
+    // 2. Inject Font Links if not already present (非同步載入，不阻塞渲染)
     const injectFont = (url: string, id: string) => {
       if (!url) return;
       let link = document.getElementById(id) as HTMLLinkElement;
       if (!link) {
         link = document.createElement('link');
         link.id = id;
-        link.rel = 'stylesheet';
+        // 使用 preload + onload 模式，避免阻塞渲染
+        link.rel = 'preload';
+        link.setAttribute('as', 'style');
+        link.onload = function() {
+          (this as HTMLLinkElement).onload = null;
+          (this as HTMLLinkElement).rel = 'stylesheet';
+        };
         document.head.appendChild(link);
       }
       if (link.href !== url) {

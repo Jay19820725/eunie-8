@@ -48,7 +48,7 @@ const EnergyField = () => (
     <EnergyOrb color="#C8E6C9" delay={24} initialPos={{ x: '30%', y: '70%' }} size="130vw" />
     
     {/* Washi Texture Overlay */}
-    <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]" />
+    
   </div>
 );
 

@@ -94,8 +94,7 @@ export const KomorebiBackground: React.FC = () => {
         className="absolute bottom-[15%] right-[25%] w-64 h-64 bg-white/10 rounded-full blur-[70px] md:blur-[120px]" 
       />
 
-      {/* Subtle texture overlay */}
-      <div className="absolute inset-0 opacity-[0.02] mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/p6.png')]" />
+      {/* Subtle texture overlay - removed external URL for WebView compatibility */}
       
       {/* Vignette for focus */}
       <div className="absolute inset-0 bg-radial-[circle_at_center,_transparent_0%,_rgba(253,252,248,0.4)_100%]" />
