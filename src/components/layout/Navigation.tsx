@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'motion/react';
-import { Sparkles, User, History, Home, ShieldAlert, Waves, Menu, X } from 'lucide-react';
+import { Sparkles, User, History, Home, ShieldAlert, Waves, Menu, X, Lock } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../hooks/useAuth';
 import { getStoredAtmosphere, Atmosphere } from '../../core/atmospheres';
@@ -13,7 +13,7 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate }) => {
   const { t } = useLanguage();
   const { isAdmin, user, isPremium } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(true); // Start expanded for 3s
+  const [isExpanded, setIsExpanded] = useState(true);
   const { scrollY } = useScroll();
   const collapseTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastManualToggleRef = useRef<number>(0);
@@ -29,19 +29,22 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
 
   const glowColor = atmosphere.colors[0];
 
-  // Auto-collapse after 5s of inactivity
+  // Auto-collapse after 6s of inactivity
   const resetCollapseTimer = () => {
     if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current);
     collapseTimerRef.current = setTimeout(() => {
       setIsExpanded(false);
-    }, 5000);
+    }, 6000);
   };
 
-  // Initial 3s expansion
+  // 首次訪問：保持展開 8 秒；回訪：3 秒後縮起
   useEffect(() => {
+    const isFirstVisit = !localStorage.getItem('eunie_nav_seen');
+    const delay = isFirstVisit ? 8000 : 3000;
+    if (isFirstVisit) localStorage.setItem('eunie_nav_seen', '1');
     const timer = setTimeout(() => {
       setIsExpanded(false);
-    }, 3000);
+    }, delay);
     return () => clearTimeout(timer);
   }, []);
 
@@ -78,21 +81,16 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
   // 3. 訂閱用戶 (Pro): 完整功能 + 視覺強化
   
   const allItems = [
-    { path: 'home', label: t('nav_home'), icon: Home },
-    { path: 'ocean', label: t('nav_ocean'), icon: Waves },
-    { path: 'history', label: t('nav_history'), icon: History },
-    { path: 'profile', label: t('nav_profile'), icon: User },
+    { path: 'home', label: t('nav_home'), icon: Home, requiresAuth: false },
+    { path: 'ocean', label: t('nav_ocean'), icon: Waves, requiresAuth: true },
+    { path: 'history', label: t('nav_history'), icon: History, requiresAuth: true },
+    { path: 'profile', label: t('nav_profile'), icon: User, requiresAuth: false },
   ];
 
   let navItems = allItems;
 
-  if (!user) {
-    // 未登入用戶：隱藏海洋與歷史
-    navItems = allItems.filter(item => ['home', 'profile'].includes(item.path));
-  }
-
   if (isAdmin) {
-    navItems = [...navItems, { path: 'admin', label: t('admin_panel'), icon: ShieldAlert }];
+    navItems = [...navItems, { path: 'admin', label: t('admin_panel'), icon: ShieldAlert, requiresAuth: true }];
   }
 
   return (
@@ -115,7 +113,8 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPath === item.path;
-                
+                const isLocked = item.requiresAuth && !user;
+
                 return (
                   <button
                     key={item.path}
@@ -123,10 +122,13 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
                       onNavigate(item.path);
                       resetCollapseTimer();
                     }}
+                    title={isLocked ? '登入後開啟' : item.label}
                     className={`relative flex items-center gap-2 transition-all duration-300 px-3 md:px-4 py-2 rounded-full ${
-                      isActive 
-                        ? 'text-ink' 
-                        : 'text-ink/30 hover:text-ink/60'
+                      isActive
+                        ? 'text-ink'
+                        : isLocked
+                          ? 'text-ink/20 hover:text-ink/35'
+                          : 'text-ink/30 hover:text-ink/60'
                     }`}
                   >
                     {isActive && (
@@ -136,9 +138,14 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
                         style={{ backgroundColor: `${glowColor}15` }}
                       />
                     )}
-                    
-                    <Icon size={isActive ? 18 : 16} strokeWidth={isActive ? 1.8 : 1.2} className="relative z-10" />
-                    
+
+                    <div className="relative z-10">
+                      <Icon size={isActive ? 18 : 16} strokeWidth={isActive ? 1.8 : 1.2} />
+                      {isLocked && (
+                        <Lock size={8} className="absolute -top-1 -right-1 text-ink/30" strokeWidth={2} />
+                      )}
+                    </div>
+
                     <AnimatePresence mode="wait">
                       {isActive && (
                         <motion.span
@@ -171,17 +178,18 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onNavigate 
             <motion.button
               key="collapsed-sphere"
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              animate={{ scale: [1, 1.06, 1], opacity: 1 }}
+              transition={{ scale: { duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 } }}
               exit={{ scale: 0, opacity: 0 }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 lastManualToggleRef.current = Date.now();
                 setIsExpanded(true);
               }}
-              className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 ${
-                isPremium 
-                  ? 'bg-emerald-50 border border-emerald-500/20' 
+              className={`relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-colors duration-300 ${
+                isPremium
+                  ? 'bg-emerald-50 border border-emerald-500/20'
                   : 'bg-white/90 border border-white/40 backdrop-blur-md'
               }`}
             >
