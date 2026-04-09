@@ -89,9 +89,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // 偵測 LINE / Android WebView，使用 redirect 避免 popup 被封鎖
     const ua = navigator.userAgent || '';
-    const isWebView = /Line\/|LIFF|wv\b|Version\/[\d.]+ Chrome/.test(ua);
+    // LINE 瀏覽器：Google 拒絕 WebView 中的 OAuth，必須在外部瀏覽器開啟
+    const isLineBrowser = /Line\//i.test(ua);
+    if (isLineBrowser) {
+      const url = window.location.href;
+      const sep = url.includes('?') ? '&' : '?';
+      window.location.href = `${url}${sep}openExternalBrowser=1`;
+      setIsLoggingIn(false);
+      return;
+    }
+
+    // 偵測其他 Android WebView，使用 redirect 避免 popup 被封鎖
+    const isWebView = /LIFF|wv\b|Version\/[\d.]+ Chrome/.test(ua);
 
     try {
       console.log("AuthContext: Starting Google Login...", isWebView ? "(redirect)" : "(popup)");

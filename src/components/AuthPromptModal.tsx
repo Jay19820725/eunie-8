@@ -1,9 +1,17 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Sparkles, LogIn } from 'lucide-react';
+import { X, Sparkles, LogIn, ExternalLink } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../hooks/useAuth';
+
+const isLineWebView = () => /Line\//i.test(navigator.userAgent || '');
+
+const openInExternalBrowser = () => {
+  const url = window.location.href;
+  const separator = url.includes('?') ? '&' : '?';
+  window.location.href = `${url}${separator}openExternalBrowser=1`;
+};
 
 interface AuthPromptModalProps {
   isOpen: boolean;
@@ -27,10 +35,16 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({ isOpen, onClos
     }
   }, [isOpen, profile?.uid, onClose, onSuccess]);
 
+  const lineWebView = isLineWebView();
+
   const handleLogin = async () => {
+    if (lineWebView) {
+      openInExternalBrowser();
+      return;
+    }
     try {
       await login();
-      // The useEffect above will handle closing and success callback 
+      // The useEffect above will handle closing and success callback
       // once the profile state is updated by the AuthProvider
     } catch (error) {
       console.error("Login failed:", error);
@@ -48,7 +62,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({ isOpen, onClos
             onClick={onClose}
             className="absolute inset-0 bg-ink/40 backdrop-blur-md"
           />
-          
+
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -59,7 +73,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({ isOpen, onClos
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-wood/5 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-64 h-64 bg-fire/5 rounded-full blur-3xl" />
 
-            <button 
+            <button
               onClick={onClose}
               className="absolute top-8 right-8 p-2 text-ink/20 hover:text-ink/40 transition-colors"
             >
@@ -80,15 +94,32 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({ isOpen, onClos
                 </p>
               </div>
 
-              <div className="w-full pt-4">
-                <Button 
-                  onClick={handleLogin}
-                  className="w-full h-16 rounded-2xl bg-ink text-white hover:bg-ink/90 flex items-center justify-center gap-4 shadow-xl shadow-ink/10 group"
-                >
-                  <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
-                  <span className="tracking-[0.2em]">{t('auth_prompt_login_btn')}</span>
-                </Button>
-              </div>
+              {lineWebView ? (
+                <div className="w-full space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left">
+                    <p className="text-xs text-amber-700 leading-relaxed">
+                      Google 登入需在外部瀏覽器中進行。點下方按鈕，將以 Safari 或 Chrome 開啟本頁面後即可登入。
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleLogin}
+                    className="w-full h-16 rounded-2xl bg-ink text-white hover:bg-ink/90 flex items-center justify-center gap-4 shadow-xl shadow-ink/10 group"
+                  >
+                    <ExternalLink size={18} className="group-hover:translate-x-1 transition-transform" />
+                    <span className="tracking-[0.2em]">在瀏覽器中開啟登入</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-full pt-4">
+                  <Button
+                    onClick={handleLogin}
+                    className="w-full h-16 rounded-2xl bg-ink text-white hover:bg-ink/90 flex items-center justify-center gap-4 shadow-xl shadow-ink/10 group"
+                  >
+                    <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
+                    <span className="tracking-[0.2em]">{t('auth_prompt_login_btn')}</span>
+                  </Button>
+                </div>
+              )}
 
               <p className="text-[10px] text-ink/20 uppercase tracking-[0.3em] font-light">
                 {t('sync_notice')}
