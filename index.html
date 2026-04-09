@@ -3,7 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>EUNIE</title>
+    <style>
+      /* 防止 JS 載入前白屏閃爍，與 Tailwind bg-bg-washi 一致 */
+      html, body { margin: 0; padding: 0; background-color: #faf8f5; }
+      #root { min-height: 100vh; background-color: #faf8f5; }
+      /* 初始 loading 指示器，CSS-only 不依賴 JS */
+      #initial-loader {
+        position: fixed; inset: 0; display: flex;
+        align-items: center; justify-content: center;
+        background-color: #faf8f5; z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      #initial-loader.hidden { opacity: 0; pointer-events: none; }
+      #initial-loader span {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: radial-gradient(circle, #c4a882 0%, transparent 70%);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.3; transform: scale(0.9); }
+        50% { opacity: 0.7; transform: scale(1.1); }
+      }
+    </style>
     <script>
       /**
        * Fix for "Uncaught TypeError: Cannot set property fetch of #<Window> which has only a getter"
@@ -50,8 +72,26 @@
     </script>
   </head>
   <body>
+    <div id="initial-loader"><span></span></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // React 掛載後隱藏初始 loader
+      document.addEventListener('DOMContentLoaded', function() {
+        var observer = new MutationObserver(function() {
+          var root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            var loader = document.getElementById('initial-loader');
+            if (loader) loader.classList.add('hidden');
+            setTimeout(function() {
+              if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+            }, 400);
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root'), { childList: true });
+      });
+    </script>
   </body>
 </html>
 

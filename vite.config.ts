@@ -23,7 +23,7 @@ export default defineConfig(({mode}) => {
       },
     },
     build: {
-      target: 'esnext',
+      target: ['es2020', 'chrome80', 'safari13'],
       minify: 'esbuild',
       rollupOptions: {
         output: {
@@ -36,6 +36,7 @@ export default defineConfig(({mode}) => {
           },
         },
       },
+      chunkSizeWarningLimit: 1000,
     },
     optimizeDeps: {
       include: ['firebase/app', 'firebase/auth'],
