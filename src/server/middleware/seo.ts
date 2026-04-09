@@ -4,7 +4,10 @@ import { pool } from "../db.ts";
 export const seoMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const userAgent = req.headers["user-agent"] || "";
   // LINE crawler can identify as facebookexternalhit, line-poker, or contain "Line/"
-  const isCrawler = /facebookexternalhit|line-poker|line\/|Twitterbot|googlebot|bingbot|linkedinbot|slackbot/i.test(userAgent);
+  // 注意：不可包含 "line/" — LINE 瀏覽器 UA 也含此字串，會導致無限重導迴圈
+  // LINE 的爬蟲 bot 使用 facebookexternalhit 或 line-poker，已涵蓋在下方
+  const isCrawler = /facebookexternalhit|line-poker|Twitterbot|googlebot|bingbot|linkedinbot|slackbot/i.test(userAgent)
+    && !/Mozilla\/5\.0/i.test(userAgent); // 排除所有真實瀏覽器（含 LINE browser）
 
   if (!isCrawler) {
     return next();
