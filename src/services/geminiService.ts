@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { ChatMessage, FiveElementValues } from "../core/types";
 
 export class GeminiService {
@@ -26,16 +26,25 @@ export class GeminiService {
   async generateGuidance(history: ChatMessage[], userInput: string, currentEnergy: FiveElementValues, lang: string = 'zh', customSystemInstruction?: string): Promise<ChatMessage> {
     const systemInstruction = customSystemInstruction || await this.fetchSystemInstruction(lang);
 
+    // Keep only the last 4 messages (2 turns) to limit input tokens
+    const trimmedHistory = history.slice(-4);
+
+    // Compact energy format: only top 2 elements by value
+    const topEnergy = Object.entries(currentEnergy)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 2)
+      .map(([k, v]) => `${k}:${v}`)
+      .join(',');
+
     const response = await this.ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-2.5-flash-preview-04-17",
       contents: [
-        ...history.map(h => ({ role: h.role, parts: [{ text: h.content }] })),
-        { role: "user", parts: [{ text: `[能量狀態]: ${JSON.stringify(currentEnergy)}\n[她的心聲]: ${userInput}\n\n請感受這股能量，給予她最溫柔的共鳴與指引。` }] }
+        ...trimmedHistory.map(h => ({ role: h.role, parts: [{ text: h.content }] })),
+        { role: "user", parts: [{ text: `[能量]: ${topEnergy}\n[心聲]: ${userInput}` }] }
       ],
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
-        thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
         responseSchema: {
           type: Type.OBJECT,
           properties: {

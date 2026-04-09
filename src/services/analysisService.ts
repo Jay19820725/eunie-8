@@ -81,6 +81,11 @@ const _generateAnalysis = async ({
     console.warn("Failed to fetch active prompt, using fallback template:", err);
   }
 
+  // Compact historical scores: "wood:42,fire:28,earth:15,metal:10,water:5"
+  const compactHistorical = historicalScores
+    ? Object.entries(historicalScores).map(([k, v]) => `${k}:${v}`).join(',')
+    : null;
+
   // Fallback hardcoded prompt if no prompt found in DB
   if (!promptTemplate) {
     if (reportType === 'wish') {
@@ -117,7 +122,7 @@ const _generateAnalysis = async ({
         {{ENERGY_DATA}}
         
         【過去のエネルギー傾向（直近10回平均）】
-        ${historicalScores ? JSON.stringify(historicalScores) : "データなし"}
+        ${compactHistorical ?? "データなし"}
         `
         : `
         妳是療癒現代女性心靈、指引煩惱出口的「靈魂解憂師（Soul Relief Guide）」，EUNIE。
@@ -151,7 +156,7 @@ const _generateAnalysis = async ({
         {{ENERGY_DATA}}
         
         【過去能量軌跡（近10次平均）】
-        ${historicalScores ? JSON.stringify(historicalScores) : "尚無數據"}
+        ${compactHistorical ?? "尚無數據"}
         `;
     } else {
       promptTemplate = currentLang === 'ja'
@@ -171,7 +176,7 @@ const _generateAnalysis = async ({
         {{ENERGY_DATA}}
         
         【過去のエネルギー傾向（直近10回平均）】
-        ${historicalScores ? JSON.stringify(historicalScores) : "データなし"}
+        ${compactHistorical ?? "データなし"}
         `
         : `
         妳是守護現代女性心靈的「能量編織者（Energy Weaver）」，EUNIE。
@@ -189,26 +194,27 @@ const _generateAnalysis = async ({
         {{ENERGY_DATA}}
         
         【過去能量軌跡（近10次平均）】
-        ${historicalScores ? JSON.stringify(historicalScores) : "尚無數據"}
+        ${compactHistorical ?? "尚無數據"}
         `;
     }
   }
 
+  // Compact element format: only top 2 elements by value
+  const compactElements = (elements: Record<string, number>) => {
+    return Object.entries(elements)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 2)
+      .map(([k, v]) => `${k[0]}:${v}`)
+      .join(',');
+  };
+
   const userData = selectedCards.pairs?.map((pair, i) => {
+    const imgEl = compactElements(pair.image.elements || {});
+    const wordEl = compactElements(pair.word.elements || {});
     if (currentLang === 'ja') {
-      return `
-        ペア ${i + 1}:
-        - 画像カード: [${pair.image.name}] (五行エネルギー: ${JSON.stringify(pair.image.elements)})
-        - 言葉カード: [${pair.word.name}] (五行エネルギー: ${JSON.stringify(pair.word.elements)})
-        - ユーザーの連想: "${pair.association}"
-      `;
+      return `P${i + 1}: [${pair.image.name}](${imgEl})+[${pair.word.name}](${wordEl}) → "${pair.association}"`;
     }
-    return `
-      配對 ${i + 1}:
-      - 圖片卡: [${pair.image.name}] (五行權重: ${JSON.stringify(pair.image.elements)})
-      - 文字卡: [${pair.word.name}] (五行權重: ${JSON.stringify(pair.word.elements)})
-      - 用戶連想: "${pair.association}"
-    `;
+    return `P${i + 1}: [${pair.image.name}](${imgEl})+[${pair.word.name}](${wordEl}) → "${pair.association}"`;
   }).join('\n');
 
   // Ensure placeholders exist, if not, append data to the end of the prompt
@@ -228,11 +234,16 @@ const _generateAnalysis = async ({
     finalPrompt += `\n\n${label}\n${userData}`;
   }
 
+  // Compact energy: e.g. "wood:42,fire:28,earth:15,metal:10,water:5"
+  const compactEnergy = Object.entries(totalScores)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(',');
+
   if (finalPrompt.includes('{{ENERGY_DATA}}')) {
-    finalPrompt = finalPrompt.replace('{{ENERGY_DATA}}', JSON.stringify(totalScores));
+    finalPrompt = finalPrompt.replace('{{ENERGY_DATA}}', compactEnergy);
   } else {
-    const label = currentLang === 'ja' ? "【エネルギーデータ】" : "【當前五行能量權重】";
-    finalPrompt += `\n\n${label}\n${JSON.stringify(totalScores)}`;
+    const label = currentLang === 'ja' ? "【エネルギーデータ】" : "【當前五行能量】";
+    finalPrompt += `\n\n${label}\n${compactEnergy}`;
   }
 
   try {
