@@ -1,5 +1,17 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { SelectedCards, AnalysisReport, FiveElementValues } from "../core/types";
+import { aiCache } from "./aiCacheService";
+
+// Singleton AI client — avoid re-initializing on every call
+let _ai: GoogleGenAI | null = null;
+const getAI = (): GoogleGenAI => {
+  if (!_ai) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY is missing");
+    _ai = new GoogleGenAI({ apiKey });
+  }
+  return _ai;
+};
 
 /**
  * Generates an AI-driven energy analysis report using Gemini.
@@ -13,16 +25,46 @@ export const generateAIAnalysis = async (
   wishContext?: { category: string; target: string; content: string },
   historicalScores?: Record<string, number>
 ): Promise<Partial<AnalysisReport>> => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  if (!process.env.GEMINI_API_KEY) {
     console.error("GEMINI_API_KEY is missing in analysisService");
     return getFallbackContent(selectedCards, currentLang, reportType);
   }
 
-  // Lazy initialization of AI client
-  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
-  
+
+  // Build cache key from stable inputs (excludes prompt template which is fetched from DB)
+  const cacheKey = aiCache.generateCacheKey('analysis', {
+    pairs: selectedCards.pairs?.map(p => ({
+      imageId: p.image.name,
+      wordId: p.word.name,
+      association: p.association,
+    })),
+    lang: currentLang,
+    reportType,
+    wishContext,
+    historicalScores,
+  });
+
+  return aiCache.getOrFetch(cacheKey, () => _generateAnalysis({
+    selectedCards, totalScores, currentLang, reportType, wishContext, historicalScores, model,
+  }));
+};
+
+type GenerateParams = {
+  selectedCards: SelectedCards;
+  totalScores: FiveElementValues;
+  currentLang: 'zh' | 'ja';
+  reportType: 'daily' | 'wish';
+  wishContext?: { category: string; target: string; content: string };
+  historicalScores?: Record<string, number>;
+  model: string;
+};
+
+const _generateAnalysis = async ({
+  selectedCards, totalScores, currentLang, reportType, wishContext, historicalScores, model,
+}: GenerateParams): Promise<Partial<AnalysisReport>> => {
+  const ai = getAI();
+
   // Fetch active prompt from database for the specific language
   let promptTemplate = "";
   

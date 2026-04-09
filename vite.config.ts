@@ -22,6 +22,30 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      target: 'esnext',
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: mode === 'production',
+          drop_debugger: true,
+        },
+      },
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-core': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+            'vendor-gemini': ['@google/genai'],
+            'vendor-charts': ['recharts', 'd3'],
+            'vendor-ui': ['lucide-react', 'motion', 'react-hot-toast'],
+          },
+        },
+      },
+    },
+    optimizeDeps: {
+      include: ['firebase/app', 'firebase/auth'],
+    },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
     },
