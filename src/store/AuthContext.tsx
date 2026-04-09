@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { userService } from '../services/userService';
 import { UserProfile } from '../core/types';
@@ -42,9 +42,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    // 處理 signInWithRedirect 的回傳結果（LINE WebView 相容）
+    getRedirectResult(auth).then((result) => {
+      if (result?.user) {
+        console.log("AuthContext: Redirect login successful:", result.user.email);
+      }
+    }).catch((error) => {
+      if (error.code !== 'auth/no-auth-event') {
+        console.error("AuthContext: Redirect result error:", error);
+      }
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
-      
+
       if (firebaseUser) {
         // Start fetching profile but don't block the UI if we already have basic user info
         try {
@@ -76,20 +87,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsLoggingIn(true);
     const provider = new GoogleAuthProvider();
-    // Prompt the user to select an account
     provider.setCustomParameters({ prompt: 'select_account' });
-    
+
+    // 偵測 LINE / Android WebView，使用 redirect 避免 popup 被封鎖
+    const ua = navigator.userAgent || '';
+    const isWebView = /Line\/|LIFF|wv\b|Version\/[\d.]+ Chrome/.test(ua);
+
     try {
-      console.log("AuthContext: Starting Google Login...");
+      console.log("AuthContext: Starting Google Login...", isWebView ? "(redirect)" : "(popup)");
+      if (isWebView) {
+        await signInWithRedirect(auth, provider);
+        return; // redirect 會離開頁面，不需要後續處理
+      }
       const result = await signInWithPopup(auth, provider);
       console.log("AuthContext: Login successful for:", result.user.email);
     } catch (error: any) {
       console.error("AuthContext: Login failed:", error);
-      
+
       let errorMessage = "登入失敗，請稍後再試。";
-      
+
       if (error.code === 'auth/popup-blocked') {
-        errorMessage = "登入視窗被瀏覽器攔截，請允許彈出視窗後再試一次。";
+        // Popup 被封鎖時自動降級為 redirect
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch {
+          errorMessage = "登入視窗被瀏覽器攔截，請嘗試用其他瀏覽器開啟。";
+        }
       } else if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = "登入視窗已被關閉。";
       } else if (error.code === 'auth/unauthorized-domain') {
@@ -97,11 +121,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (error.code === 'auth/operation-not-allowed') {
         errorMessage = "Google 登入功能未在 Firebase Console 中啟用。";
       } else if (error.code === 'auth/cancelled-popup-request') {
-        // This is handled by our isLoggingIn check but good to have a specific message if it still happens
         console.warn("AuthContext: Popup request was cancelled by a newer request.");
-        return; 
+        return;
       }
-      
+
       alert(errorMessage);
     } finally {
       setIsLoggingIn(false);

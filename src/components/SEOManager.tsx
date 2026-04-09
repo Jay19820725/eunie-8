@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { SEOSettings } from '../core/types';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -14,7 +14,7 @@ export const SEOManager: React.FC = () => {
     }
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!seo) return;
 
     // Update Title
