@@ -1,6 +1,6 @@
+// 注意：Tailwind v4 由 @tailwindcss/vite 插件處理，不需要 @tailwindcss/postcss
 export default {
   plugins: {
-    '@tailwindcss/postcss': {},
     'postcss-preset-env': {
       stage: 2,
       features: {
